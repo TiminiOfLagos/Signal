@@ -1,0 +1,1935 @@
+<title>SIGNAL — Sessions 03</title>
+
+<style>
+/* ============================================================
+   SIGNAL / SESSIONS 03
+   A studio residency campaign site.
+   One visual world: a console room at 3am. Single-theme by
+   choice — the toggle is pinned to a no-op below.
+   ============================================================ */
+
+:root{
+  /* --- palette: real console finishes, pushed hot --- */
+  --void:    #070605;   /* the room with the lights off */
+  --void-2:  #12100C;   /* raised panel */
+  --tape:    #F2E9D8;   /* aged tape-box card stock */
+  --tape-2:  #E2D6BE;   /* card stock, shadowed */
+  --tape-hi: #FBF6EC;   /* a fresher sheet — separates adjacent cream folds */
+  --amber:   #FF6A00;   /* the signal. the one accent. */
+  --amber-2: #FFA23D;   /* the same lamp, closer to the filament */
+  --clip:    #FF2D0E;   /* over 0dB. semantic, never decorative. */
+  --vu:      #3DD97A;   /* under 0dB. semantic. */
+  --room:    #041B33;   /* painted wall under work lights */
+  --room-2:  #0A2A49;
+  --dust:    #8C8274;   /* warm neutral, biased to the cream */
+  --ink:     #100D09;   /* text on tape */
+  --rust:    #A33C00;   /* the amber, darkened for small text ON cream
+                           (#FF6A00 only reaches 2.8:1 there; this is 6.5:1) */
+
+  --font-display: "Arial Black","Arial Bold","Helvetica Neue",Helvetica,Impact,sans-serif;
+  --font-mono: ui-monospace,"Cascadia Mono","Segoe UI Mono","SF Mono",Menlo,Consolas,monospace;
+  --font-body: ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+
+  --r-btn: 8px;   /* buttons: softened, but only just */
+  --r-card: 6px;
+
+  --pad: clamp(20px, 5vw, 88px);
+  --maxw: 1440px;
+
+  color-scheme: dark;
+}
+:root[data-theme="light"], :root[data-theme="dark"]{ color-scheme: dark; }
+
+*, *::before, *::after{ box-sizing: border-box; }
+
+body{
+  margin:0;
+  background: var(--void);
+  color: var(--tape);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img, svg{ max-width:100%; display:block; }
+::selection{ background: var(--amber); color: var(--void); }
+:focus-visible{ outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 3px; }
+
+/* ---------- shared type ---------- */
+.display{
+  font-family: var(--font-display); font-weight: 900;
+  text-transform: uppercase; letter-spacing: -0.045em; line-height: 0.82;
+  margin: 0; text-wrap: balance;
+}
+.mono{ font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+.prose{ font-size: clamp(15px, 1.15vw, 17.5px); line-height: 1.62; max-width: 62ch; color: color-mix(in srgb, currentColor 82%, transparent); }
+.prose p{ margin: 0 0 1.1em; }
+.prose p:last-child{ margin-bottom: 0; }
+.rule{ height:1px; flex:1; min-width:30px; background: color-mix(in srgb, currentColor 22%, transparent); }
+
+.grain::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  opacity:.17; mix-blend-mode: overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav{
+  position: fixed; inset: 0 0 auto 0; z-index: 90;
+  display:flex; align-items:center; justify-content:space-between; gap: 20px;
+  padding: 12px var(--pad);
+  background: color-mix(in srgb, var(--void) 70%, transparent);
+  backdrop-filter: blur(16px) saturate(1.25);
+  border-bottom: 1px solid color-mix(in srgb, var(--tape) 10%, transparent);
+  transition: background .4s ease;
+}
+/* the wordmark is the logo: SIGNAL, with the stop in amber */
+.nav__brand{
+  display:inline-flex; align-items:baseline;
+  font-family: var(--font-display); font-weight:900;
+  letter-spacing:-0.05em; font-size:21px; text-transform:uppercase;
+  color: var(--tape); text-decoration:none;
+}
+.nav__brand span{ color: var(--amber); transition: color .25s ease; }
+.nav__brand:hover span{ color: var(--amber-2); }
+.nav__links{ display:flex; gap: 26px; }
+.nav__links a{
+  color: color-mix(in srgb, var(--tape) 62%, transparent); text-decoration:none;
+  font-family: var(--font-mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  transition: color .2s ease;
+}
+.nav__links a:hover{ color: var(--amber); }
+.nav__progress{
+  position:absolute; left:0; bottom:-1px; height:2px; width:0%;
+  background: var(--amber); box-shadow: 0 0 14px var(--amber);
+}
+
+/* ---------- buttons ---------- */
+.btn{
+  --btn-bg: var(--amber); --btn-fg: var(--void);
+  display:inline-flex; align-items:center; gap:12px;
+  padding: 14px 22px 14px 18px;
+  background: var(--btn-bg); color: var(--btn-fg);
+  border: none; border-radius: var(--r-btn);
+  font-family: var(--font-mono); font-size:12px;
+  letter-spacing:.14em; text-transform:uppercase; font-weight:600;
+  text-decoration:none; cursor:pointer; position:relative; overflow:hidden;
+  transition: transform .25s cubic-bezier(.2,.7,.3,1), box-shadow .25s ease;
+}
+.btn::before{
+  content:""; position:absolute; inset:0;
+  background: color-mix(in srgb, #fff 24%, transparent);
+  transform: translateY(101%); transition: transform .35s cubic-bezier(.2,.7,.3,1);
+}
+.btn:hover{ transform: translateY(-2px); box-shadow: 0 12px 36px -12px var(--amber); }
+.btn:active{ transform: translateY(0); }
+.btn:hover::before{ transform: translateY(0); }
+.btn > *{ position:relative; }
+.btn__dot{ width:9px; height:9px; border-radius:50%; background: var(--btn-fg); animation: pulse 1.8s ease-in-out infinite; flex:none; }
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.25} }
+.btn--sm{ padding:10px 16px 10px 13px; font-size:11px; }
+.btn--ghost{ --btn-bg: transparent; --btn-fg: var(--tape); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tape) 28%, transparent); }
+.btn--ghost:hover{ box-shadow: inset 0 0 0 1px var(--amber); color: var(--amber); }
+.btn--ink{ --btn-bg: var(--ink); --btn-fg: var(--tape); }
+
+/* ============================================================
+   HERO — pinned three-beat console scene
+   ============================================================ */
+.hero{ position: relative; height: 230vh; background: var(--void); }
+.hero__sticky{
+  position: sticky; top:0; height: 100vh; overflow: hidden;
+  display:flex; flex-direction:column;
+  padding: 86px var(--pad) 0;
+}
+#scope{ position:absolute; inset:0; width:100%; height:100%; opacity:.85; }
+.hero__glow{
+  position:absolute; left:50%; top:56%;
+  width: min(1600px, 160vw); aspect-ratio: 1/.6; transform: translate(-50%,-50%);
+  background: radial-gradient(ellipse at center,
+      color-mix(in srgb, var(--amber) 46%, transparent) 0%,
+      color-mix(in srgb, var(--amber) 12%, transparent) 40%, transparent 68%);
+  filter: blur(34px); pointer-events:none;
+}
+.hero__cables{ position:absolute; inset:0; pointer-events:none; opacity:.55; }
+.hero__cables path{ fill:none; stroke: var(--amber); stroke-width:1.5; opacity:.4; }
+.hero__cables path.c2{ stroke: var(--tape); opacity:.15; }
+
+/* The copy block and the desk are FLOW SIBLINGS, not layers. That is what
+   guarantees the CTAs can never land on the console — at any scroll position,
+   any viewport. Scroll only ever moves them apart, never together. */
+.hero__inner{
+  position:relative; z-index:3; width:100%; max-width: var(--maxw);
+  margin:0 auto; flex:1; min-height:0;
+  display:grid; align-content:center; gap: clamp(14px, 2.2vw, 34px);
+  padding-bottom: clamp(18px, 3vh, 40px);
+}
+.hero__eyebrow{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; color: color-mix(in srgb, var(--tape) 58%, transparent); }
+.hero__eyebrow span{ display:inline-flex; align-items:center; gap:8px; }
+.led{ width:8px; height:8px; border-radius:50%; background: var(--amber); box-shadow: 0 0 12px var(--amber); animation: pulse 2.4s ease-in-out infinite; flex:none; }
+
+/* "SESSIONS 03" measures 6.84em at this tracking (measured, not estimated).
+   Two bounds matter: the vw ratio, and the 250px cap — which was wrong,
+   because .hero__inner stops growing at --maxw (1440px) while vh-driven type
+   kept scaling past it. 1440/6.84 = 210px is the real ceiling. */
+.hero__title{ font-size: clamp(46px, min(12.5vw, 20vh), 205px); line-height: .8; }
+.hero__title .ln{ display:block; overflow:hidden; padding-bottom:.02em; }
+.hero__title .ln > span{ display:block; will-change: transform; }
+.hero__title .solid{ color: var(--tape); }
+/* line two starts as an empty meter and fills with amber as you scroll */
+.hero__title .fill{
+  color: transparent;
+  -webkit-text-stroke: clamp(1.2px, .16vw, 2.4px) var(--amber);
+  background-image: linear-gradient(90deg, var(--amber) var(--p,0%), transparent var(--p,0%));
+  -webkit-background-clip: text; background-clip: text;
+}
+
+.hero__foot{ display:flex; align-items:flex-end; gap: 26px; flex-wrap: wrap; }
+.hero__lede{
+  font-size: clamp(17px, 1.6vw, 23px); line-height:1.4; max-width: 36ch; margin:0;
+  color: color-mix(in srgb, var(--tape) 88%, transparent);
+}
+/* the single most important fact on the page gets its own object */
+.hero__badge{
+  display:inline-flex; align-items:center; gap:10px; width:fit-content;
+  padding: 9px 16px 9px 13px;
+  border: 1.5px solid var(--amber);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+  box-shadow: 0 0 26px -6px color-mix(in srgb, var(--amber) 70%, transparent),
+              inset 0 0 18px -8px var(--amber);
+  font-family: var(--font-mono); font-weight:700;
+  font-size: clamp(12px, 1.15vw, 15px); letter-spacing:.16em; text-transform:uppercase;
+  color: var(--amber-2);
+}
+.hero__badge b{ color: var(--tape); font-weight:700; }
+
+/* ---------- the desk ---------- */
+.desk{
+  position:relative; z-index:2; flex:none;
+  display:flex; justify-content:center;
+  pointer-events:none;
+  will-change: transform;
+}
+.desk__enter{ width:100%; max-width: var(--maxw); will-change: transform; }
+.desk__unit{
+  width:100%;
+  background: linear-gradient(180deg, #191510, #0A0806);
+  border: 1px solid color-mix(in srgb, var(--tape) 15%, transparent);
+  border-bottom:none;
+  border-radius: 10px 10px 0 0;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tape) 14%, transparent),
+              0 -30px 90px -40px var(--amber);
+  padding: 14px 14px 0;
+  display:grid; gap:10px;
+}
+.desk__top{ display:flex; align-items:stretch; gap:12px; }
+
+/* analog VU meter */
+.vum{
+  flex:none; width: clamp(96px, 12vw, 150px);
+  background: linear-gradient(180deg, #F6EEDC, #D9CCB1);
+  border-radius: 4px; padding:5px;
+  box-shadow: inset 0 0 0 1px #0006, 0 2px 0 #0008;
+}
+.vum svg{ width:100%; height:auto; display:block; }
+.vum .needle{ transform-origin: 100px 88px; transition: none; }
+
+.rack{
+  flex:1; display:flex; align-items:stretch; gap:2px;
+  height: clamp(74px, 9.5vw, 120px);
+  padding: 8px 6px;
+  background: #0A0806; border-radius:4px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tape) 9%, transparent);
+  overflow:hidden;
+}
+.rack__strip{ flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:4px; padding:0 3px; min-width:0; }
+.rack__knob{
+  width:12px; height:12px; border-radius:50%; margin:0 auto;
+  background: conic-gradient(from 180deg, #3E352B, #17130F 55%, #3E352B);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tape) 18%, transparent); position:relative;
+}
+.rack__knob::after{
+  content:""; position:absolute; left:50%; top:1px; width:1.5px; height:4.5px;
+  background: var(--amber-2); transform: translateX(-50%) rotate(var(--rot,0deg)); transform-origin: 50% 5px;
+}
+.rack__vuwrap{ flex:1; display:flex; align-items:flex-end; background:#050403; border-radius:1px; box-shadow: inset 0 0 0 1px #ffffff12; overflow:hidden; }
+.rack__vu{
+  width:100%; height:100%;
+  background: linear-gradient(180deg, var(--clip) 0 11%, var(--amber) 11% 33%, var(--vu) 33% 100%);
+  transform-origin: bottom; transform: scaleY(var(--lvl,.15));
+}
+.rack__lbl{ font-family: var(--font-mono); font-size:7px; letter-spacing:.08em; color:#ffffff40; text-align:center; }
+
+/* patch bay strip */
+.bay{ position:relative; height: clamp(46px, 5.4vw, 66px); background:#0A0806; border-radius:4px 4px 0 0; box-shadow: inset 0 0 0 1px #ffffff10; overflow:hidden; }
+.bay svg{ position:absolute; inset:0; width:100%; height:100%; }
+
+.hero__cue{
+  position:absolute; left:var(--pad); bottom:16px; z-index:4;
+  display:flex; align-items:center; gap:10px;
+  color: color-mix(in srgb, var(--tape) 46%, transparent);
+}
+.hero__cue i{ width:36px; height:1px; background: linear-gradient(90deg, var(--amber), transparent); }
+
+/* ============================================================
+   BAND — the offer, in amber
+   ============================================================ */
+.band{ position:relative; background: var(--tape-hi); color: var(--ink); padding: clamp(64px, 9vw, 120px) 0 0; overflow:hidden; }
+.band__inner{ max-width: var(--maxw); margin:0 auto; padding: 0 var(--pad); display:grid; gap: clamp(26px, 3vw, 44px); }
+.band__eyebrow{ display:flex; align-items:center; gap:16px; color: color-mix(in srgb, var(--ink) 50%, transparent); }
+.band__head{
+  font-size: clamp(26px, 3.3vw, 50px); line-height:1.14; margin:0; max-width: 22ch;
+  font-weight:500; letter-spacing:-0.025em; text-wrap: balance;
+}
+.band__head b{ font-family: var(--font-display); font-weight:900; text-transform:uppercase; letter-spacing:-0.04em; }
+/* Each figure gets a visual that means something: seats you can count,
+   an arc for a span of time, a level for money. Not four numbers on a rule. */
+.band__stats{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: clamp(12px,1.6vw,22px); }
+.stat{
+  position:relative; display:grid; gap:12px; align-content:start;
+  background: linear-gradient(168deg,#FFFDF8,var(--tape));
+  border:2px solid var(--ink); border-radius: var(--r-card);
+  box-shadow: 5px 7px 0 color-mix(in srgb, var(--ink) 13%, transparent);
+  padding: clamp(16px,1.7vw,24px);
+  transition: transform .45s cubic-bezier(.2,.8,.25,1), box-shadow .35s ease;
+}
+.stat:hover{ transform: translateY(-4px); box-shadow: 9px 13px 0 color-mix(in srgb, var(--ink) 18%, transparent); }
+.stat__viz{ height: 54px; display:flex; align-items:center; }
+.stat__num{
+  font-family: var(--font-display); font-weight:900;
+  font-size: clamp(34px, 4.2vw, 62px); letter-spacing:-0.05em; line-height:1;
+  font-variant-numeric: tabular-nums; display:block;
+}
+.stat__label{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color: var(--rust); }
+.stat__note{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color: color-mix(in srgb, var(--ink) 48%, transparent); }
+
+/* seats — you can literally count the places on offer */
+.seats{ display:flex; flex-wrap:wrap; gap:4px; align-content:center; }
+.seats i{
+  width:13px; height:17px; border-radius:2px;
+  border:1.5px solid var(--ink);
+  background: transparent;
+  transition: background .4s cubic-bezier(.2,.8,.25,1) var(--sd,0s);
+}
+.stat.in .seats i{ background: var(--amber); }
+.seats--lg i{ width:22px; height:28px; }
+
+/* an arc for a span of time */
+.arc{ width:74px; height:74px; margin-top:-8px; }
+.arc circle{ fill:none; stroke-linecap:round; }
+.arc .trk{ stroke: color-mix(in srgb, var(--ink) 16%, transparent); stroke-width:9; }
+.arc .val{ stroke: var(--amber); stroke-width:9; stroke-dasharray:201; stroke-dashoffset:201; transform: rotate(-90deg); transform-origin:center; transition: stroke-dashoffset 1.5s cubic-bezier(.2,.8,.25,1) .1s; }
+.stat.in .arc .val{ stroke-dashoffset:0; }
+
+/* a level for money — the same meter the lanes use */
+.lvlbar{ width:100%; display:grid; gap:5px; }
+.lvlbar__ticks{ display:flex; justify-content:space-between; height:8px; align-items:flex-end; }
+.lvlbar__ticks i{ width:1px; height:4px; background: color-mix(in srgb, var(--ink) 30%, transparent); }
+.lvlbar__ticks i:nth-child(4n+1){ height:8px; background: color-mix(in srgb, var(--ink) 52%, transparent); }
+.lvlbar__bar{ height:14px; border:2px solid var(--ink); border-radius:3px; background:#0A0806; overflow:hidden; }
+.lvlbar__fill{ height:100%; width:0%; background: linear-gradient(90deg, var(--vu) 0 58%, var(--amber) 58% 86%, var(--clip) 86% 100%); background-size:160% 100%; transition: width 1.4s cubic-bezier(.2,.8,.25,1) .15s; }
+.stat.in .lvlbar__fill{ width:100%; }
+/* line-height .85 cropped the digits' cap and sat them on the rule above.
+   Give the number its own leading and pad the cell off the divider. */
+.ticker{ margin-top: clamp(40px, 5vw, 70px); border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); background: var(--amber); color: var(--void); overflow:hidden; display:flex; padding: 11px 0; }
+.ticker__row{ display:flex; gap:34px; flex:none; padding-right:34px; animation: slide 34s linear infinite; font-family: var(--font-mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase; white-space:nowrap; }
+.ticker__row i{ font-style:normal; opacity:.42; }
+@keyframes slide{ to{ transform: translateX(-100%); } }
+
+/* ============================================================
+   TAPE CHAPTERS
+   ============================================================ */
+.tape{ background: var(--tape); color: var(--ink); position: relative; }
+
+.statement{ padding: clamp(90px, 14vw, 200px) var(--pad); position:relative; overflow:hidden; }
+.statement__inner{ max-width: var(--maxw); margin:0 auto; }
+.statement__eyebrow{ color: color-mix(in srgb, var(--ink) 48%, transparent); margin-bottom: clamp(30px, 4vw, 56px); display:flex; align-items:center; gap:14px; }
+/* "NOBODY BUILT" measures 7.9em; content box ~0.9vw ⇒ keep under 11.4vw. */
+.statement__head{ font-size: clamp(46px, 11vw, 178px); }
+.statement__head .ln{ display:block; overflow:hidden; padding-bottom:.04em; }
+.statement__head .ln > span{ display:block; will-change: transform; }
+.statement__head .hl{ color: var(--amber); }
+.statement__head .out{ color: transparent; -webkit-text-stroke: 1.5px color-mix(in srgb, var(--ink) 45%, transparent); }
+.statement__note{ margin-top: clamp(34px, 4vw, 60px); display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: clamp(24px,3vw,50px); border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent); padding-top: 26px; }
+
+.split{ padding: clamp(60px, 8vw, 120px) var(--pad); border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); }
+.split__inner{ max-width: var(--maxw); margin:0 auto; display:grid; grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr); gap: clamp(28px, 5vw, 90px); align-items:start; }
+.split__head{ font-size: clamp(34px, 5.4vw, 84px); }
+.split__head .hl{ color: var(--amber); }
+.split__aside{ display:grid; gap:22px; }
+.pullquote{ border-left: 3px solid var(--amber); padding: 4px 0 4px 20px; font-size: clamp(17px,1.9vw,25px); line-height:1.32; letter-spacing:-0.02em; font-weight:500; margin:0; }
+.pullquote cite{ display:block; margin-top:12px; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-style:normal; color: color-mix(in srgb, var(--ink) 55%, transparent); }
+
+/* ============================================================
+   THE PATCH BAY — cards hung on real, sagging cable
+   ============================================================ */
+.bay-sec{ padding: clamp(40px, 6vw, 80px) var(--pad) clamp(80px, 11vw, 150px); }
+.bay-sec__inner{ max-width: var(--maxw); margin:0 auto; display:grid; gap: clamp(56px,7vw,100px); }
+
+.lane__head{ display:flex; align-items:baseline; justify-content:space-between; gap:18px; flex-wrap:wrap; padding-bottom:14px; border-bottom: 2px solid var(--ink); }
+.lane__head h3{ font-family: var(--font-display); font-weight:900; text-transform:uppercase; letter-spacing:-0.04em; font-size: clamp(24px,3.2vw,44px); margin:0; line-height:1; }
+.lane__head p{ margin:0; font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color: color-mix(in srgb, var(--ink) 55%, transparent); }
+
+.lane{ position:relative; }
+.lane__grid{
+  position:relative;
+  display:grid; grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: clamp(120px, 12vw, 156px) clamp(14px, 2vw, 26px);
+  padding-top: 86px;
+}
+.lane__grid--four{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+/* the cable overlay is drawn from measured card positions */
+.lane__rig{ position:absolute; inset:0; pointer-events:none; overflow:visible; z-index:0; }
+.lane__rig .cable{ fill:none; stroke: color-mix(in srgb, var(--ink) 62%, transparent); stroke-width:2.5; stroke-linecap:round; }
+.lane__rig .drop{ fill:none; stroke: color-mix(in srgb, var(--ink) 62%, transparent); stroke-width:2.5; stroke-linecap:round; }
+.lane__rig .collar{ fill: var(--ink); }
+.lane__rig .jack{ fill: var(--tape); stroke: var(--ink); stroke-width:2.5; }
+.lane__rig .jackdot{ fill: var(--accent, var(--amber)); }
+.lane__rig .term{ fill: var(--ink); }
+
+.card{ position: relative; display:flex; flex-direction:column; z-index:1; }
+.card__hang{
+  --accent: var(--amber);
+  position:relative;
+  background: linear-gradient(168deg, #FFFDF8, var(--tape-2));
+  border: 2px solid var(--ink); border-radius: var(--r-card);
+  box-shadow: 5px 7px 0 color-mix(in srgb, var(--ink) 15%, transparent);
+  transform-origin: 50% -78px;
+  transition: transform .6s cubic-bezier(.2,.8,.25,1), box-shadow .35s ease;
+  display:flex; flex-direction:column; flex: 1 0 auto;
+}
+.card:hover .card__hang, .card:focus-within .card__hang{
+  transform: rotate(var(--lean, -1.3deg)) translateY(7px);
+  box-shadow: 11px 16px 0 color-mix(in srgb, var(--ink) 20%, transparent);
+}
+.card:nth-child(even){ --lean: 1.3deg; }
+
+.card__tab{
+  position:absolute; top:-16px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:8px; padding: 4px 11px;
+  background: var(--accent); color: var(--void);
+  border: 2px solid var(--ink); border-radius:4px;
+  font-family:var(--font-mono); font-size:9.5px; letter-spacing:.16em; font-weight:700; white-space:nowrap;
+}
+.screw{ width:5px; height:5px; border-radius:50%; background: color-mix(in srgb, var(--ink) 55%, transparent); box-shadow: inset 0 1px 0 #ffffff66; flex:none; }
+
+.card__body{ padding: 30px 18px 18px; display:flex; flex-direction:column; gap:14px; flex:1; }
+.card__title{ font-family:var(--font-display); font-weight:900; text-transform:uppercase; letter-spacing:-0.04em; line-height:.86; font-size: clamp(21px, 2.15vw, 32px); margin:0; }
+.card__title span{ display:block; }
+.card__toggle{
+  appearance:none; background:none; border:none; padding:0 0 3px;
+  display:flex; align-items:center; gap:8px; cursor:pointer;
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase;
+  color: color-mix(in srgb, var(--ink) 60%, transparent); width:fit-content;
+  border-bottom:1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  transition: color .2s ease, border-color .2s ease;
+}
+.card__toggle:hover{ color: var(--ink); border-color: var(--ink); }
+.card__toggle i{ display:block; width:8px; height:8px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform: rotate(45deg) translate(-1px,-1px); transition: transform .3s ease; }
+.card__toggle[aria-expanded="true"] i{ transform: rotate(-135deg) translate(-2px,-2px); }
+
+.card__drawer{ display:grid; grid-template-rows: 0fr; transition: grid-template-rows .45s cubic-bezier(.2,.8,.25,1); }
+.card__drawer > div{ overflow:hidden; }
+.card__toggle[aria-expanded="true"] + .card__drawer{ grid-template-rows: 1fr; }
+.card__drawer p{ margin:0; padding-top:2px; font-size:13.5px; line-height:1.5; color: color-mix(in srgb, var(--ink) 74%, transparent); }
+
+.chips{ display:flex; flex-wrap:wrap; gap:5px; margin-top:auto; }
+.chips span{ font-family:var(--font-mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; padding: 4px 7px; border:1px solid color-mix(in srgb, var(--ink) 28%, transparent); border-radius:3px; color: color-mix(in srgb, var(--ink) 68%, transparent); background: color-mix(in srgb, #fff 45%, transparent); }
+
+.meter{ display:grid; gap:5px; padding-top:4px; }
+.meter__ticks{ display:flex; justify-content:space-between; align-items:flex-end; height:9px; }
+.meter__ticks i{ width:1px; background: color-mix(in srgb, var(--ink) 32%, transparent); height:4px; }
+.meter__ticks i:nth-child(5n+1){ height:9px; background: color-mix(in srgb, var(--ink) 55%, transparent); }
+.meter__bar{ height:10px; border:2px solid var(--ink); border-radius:3px; background: #0A0806; overflow:hidden; }
+.meter__fill{ height:100%; width:0%; background: linear-gradient(90deg, var(--vu) 0 62%, var(--amber) 62% 88%, var(--clip) 88% 100%); background-size: 160% 100%; transition: width 1.1s cubic-bezier(.2,.8,.25,1) var(--d,0s); }
+.meter__legend{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:8.5px; letter-spacing:.16em; color: color-mix(in srgb, var(--ink) 52%, transparent); }
+.meter__legend b{ color: var(--ink); font-weight:400; }
+
+/* ============================================================
+   THE ROOM (deep blue chapters)
+   ============================================================ */
+.room{ background: var(--room); color: var(--tape); position:relative; }
+
+.apply{ padding: clamp(76px, 10vw, 150px) var(--pad); }
+.apply__inner{ max-width: var(--maxw); margin:0 auto; display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(30px, 5vw, 80px); align-items:start; }
+.apply__head{ font-size: clamp(38px, 6.4vw, 100px); }
+.apply__head .hl{ color: var(--amber); }
+.apply__list{ list-style:none; margin:0; padding:0; display:grid; }
+.apply__list li{ display:grid; grid-template-columns: auto 1fr; gap:16px; align-items:start; padding: 18px 0; border-bottom:1px solid color-mix(in srgb, var(--tape) 15%, transparent); font-size: clamp(15px,1.3vw,18px); line-height:1.45; }
+.apply__list li:first-child{ border-top:1px solid color-mix(in srgb, var(--tape) 15%, transparent); }
+.apply__list b{ font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; color: var(--amber); padding-top:5px; font-weight:400; }
+.apply__cta{ margin-top: 28px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.apply__fine{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em; color: color-mix(in srgb, var(--tape) 46%, transparent); text-transform:uppercase; }
+
+/* ---------- timeline: centre rail, alternating sides ---------- */
+.timeline{ padding: clamp(70px, 9vw, 130px) var(--pad) clamp(90px,11vw,150px); border-top:1px solid color-mix(in srgb, var(--tape) 12%, transparent); position:relative; overflow:hidden; }
+.timeline__swooshes{ position:absolute; inset:0; pointer-events:none; opacity:.5; }
+.timeline__swooshes path{ fill:none; stroke: color-mix(in srgb, var(--tape) 10%, transparent); stroke-width:1.5; }
+.timeline__inner{ max-width: 1180px; margin:0 auto; position:relative; }
+.timeline__head{ font-size: clamp(38px, 6.6vw, 104px); margin-bottom: clamp(44px,5vw,74px); }
+
+.tlt{ position:relative; padding: 6px 0; }
+/* a moulded rail, not a hairline: highlight down the left edge, shadow down
+   the right, so it reads as a round bar catching the room light */
+.tlt__rail{
+  position:absolute; left:50%; top:0; bottom:0; width:14px; transform:translateX(-50%);
+  border-radius:10px; overflow:hidden;
+  background: linear-gradient(90deg, #0B2438 0%, #12344F 34%, #061A2B 78%, #02101B 100%);
+  box-shadow: inset 1.5px 0 0 #ffffff1f, inset -2px 0 0 #00000099, 0 2px 10px #00000066, 0 0 0 1px #00000055;
+}
+.tlt__fill{
+  position:absolute; left:0; top:0; width:100%; height:0%;
+  background: linear-gradient(90deg, #C24A00 0%, var(--amber-2) 32%, var(--amber) 62%, #A83A00 100%);
+  box-shadow: inset 1.5px 0 0 #ffffff88, inset -2px 0 0 #00000055, 0 0 26px var(--amber);
+  border-radius:10px;
+}
+
+.tli{ position:relative; display:grid; grid-template-columns: 1fr 1fr; column-gap: clamp(48px, 8vw, 130px); padding: clamp(12px,1.6vw,22px) 0; }
+/* Cards go from unlit panel to lit cream card as the fill passes them —
+   the same card stock as the patch bay, so the whole page shares one material. */
+.tli__card{
+  grid-column: 1; text-align:right;
+  background: #06263F;
+  border:2px solid color-mix(in srgb, var(--tape) 13%, transparent);
+  color: color-mix(in srgb, var(--tape) 52%, transparent);
+  border-radius: var(--r-card); padding: 16px 20px;
+  transform: translateX(-14px);
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+  transition: transform .55s cubic-bezier(.2,.8,.25,1), border-color .55s ease,
+              background .55s ease, color .55s ease, box-shadow .55s ease;
+}
+.tli--r .tli__card{ grid-column: 2; text-align:left; transform: translateX(14px); }
+.tli.is-on .tli__card{
+  transform:none; background: var(--tape); border-color: var(--ink); color: var(--ink);
+  box-shadow: 6px 8px 0 rgba(0,0,0,.42);
+}
+.tli__date{ font-family:var(--font-mono); font-size: clamp(11px,1.05vw,13px); letter-spacing:.1em; text-transform:uppercase; color: color-mix(in srgb, var(--tape) 42%, transparent); font-variant-numeric: tabular-nums; display:block; margin-bottom:6px; transition: color .55s ease; }
+.tli.is-on .tli__date{ color: var(--rust); }
+.tli__what{ font-size: clamp(16px,1.5vw,21px); line-height:1.25; letter-spacing:-0.015em; font-weight:500; }
+.tli__what small{ display:block; margin-top:6px; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color: color-mix(in srgb, currentColor 62%, transparent); line-height:1.5; font-weight:400; }
+
+/* the rod reaching from the rail out to the card */
+.tli__rod{
+  position:absolute; top:50%; height:6px; width: clamp(22px, 4vw, 62px);
+  background: linear-gradient(180deg, #23425C 0%, #0C2438 62%, #04121F 100%);
+  border-radius:3px;
+  right:50%; margin-right:12px; transform: translateY(-50%);
+  box-shadow: inset 0 1px 0 #ffffff1f;
+  transition: background .5s ease, box-shadow .5s ease;
+}
+.tli--r .tli__rod{ right:auto; left:50%; margin-right:0; margin-left:12px; }
+.tli.is-on .tli__rod{
+  background: linear-gradient(180deg, var(--amber-2) 0%, var(--amber) 58%, #9C3800 100%);
+  box-shadow: inset 0 1px 0 #ffffff77, 0 0 16px color-mix(in srgb, var(--amber) 70%, transparent);
+}
+
+/* the socket sitting on the rail */
+.tli__socket{ position:absolute; left:50%; top:50%; transform: translate(-50%,-50%); width:26px; height:26px; }
+.tli__socket i{ position:absolute; inset:0; border-radius:50%; }
+.tli__socket .s-out{
+  background: radial-gradient(circle at 34% 28%, #16374E, #030F19);
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--tape) 22%, transparent), 0 3px 8px #00000088;
+  transition: box-shadow .5s ease;
+}
+.tli__socket .s-in{ inset:7px; background: #02090F; box-shadow: inset 0 2px 4px #000; transition: background .5s ease, box-shadow .5s ease; }
+.tli.is-on .s-out{ box-shadow: inset 0 0 0 3px var(--amber), 0 3px 10px #00000088; }
+.tli.is-on .s-in{ background: var(--amber-2); box-shadow: 0 0 16px var(--amber), inset 0 1px 2px #ffffffaa; }
+
+/* the timeline hands straight off to the ask */
+.tlt__end{
+  position:relative; margin-top: clamp(30px,4vw,52px);
+  display:flex; flex-direction:column; align-items:center; gap:16px; text-align:center;
+}
+.tlt__end .tli__socket{ position:relative; left:auto; top:auto; transform:none; }
+.tlt__end p{
+  margin:0; max-width: 42ch;
+  font-size: clamp(15px,1.3vw,18px); line-height:1.5;
+  color: color-mix(in srgb, var(--tape) 74%, transparent);
+}
+
+/* ---------- archive ---------- */
+.archive{ padding: clamp(70px, 9vw, 130px) var(--pad) clamp(90px,11vw,160px); border-top:1px solid color-mix(in srgb, var(--tape) 12%, transparent); }
+.archive__inner{ max-width: var(--maxw); margin:0 auto; }
+/* the title sits centred ON the waveform ground, not beside it */
+.archive__top{ position:relative; display:grid; place-items:center; padding: clamp(30px,5vw,64px) 0 clamp(26px,4vw,48px); margin-bottom: clamp(6px,1vw,14px); }
+.archive__bg{ position:absolute; inset:0; width:100%; height:100%; opacity:.5; pointer-events:none; }
+.archive__top::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--room) 72%, transparent) 0%, color-mix(in srgb, var(--room) 30%, transparent) 52%, transparent 78%);
+}
+.archive__head{
+  position:relative; z-index:2; text-align:center;
+  font-size: clamp(34px, 6.4vw, 96px); margin:0;
+}
+.archive__sub{
+  /* ch is narrow in mono and the tracking is wide — 46ch broke this onto two
+     lines. Sized to the actual set width instead. */
+  position:relative; z-index:2; margin: 18px auto 0; text-align:center; max-width: 62ch;
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color: color-mix(in srgb, var(--tape) 52%, transparent);
+}
+.screen{ position:relative; border:2px solid color-mix(in srgb, var(--tape) 22%, transparent); border-radius:var(--r-card); overflow:hidden; background:#04080D; aspect-ratio: 21/9; }
+.screen canvas{ position:absolute; inset:0; width:100%; height:100%; }
+.screen__meta{ position:absolute; left:0; right:0; bottom:0; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; padding: 12px 16px; background: linear-gradient(0deg, rgba(4,8,13,.94), transparent); font-family:var(--font-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color: color-mix(in srgb, var(--tape) 62%, transparent); }
+.screen__rec{ display:inline-flex; align-items:center; gap:7px; color: var(--clip); }
+.screen__rec::before{ content:""; width:7px; height:7px; border-radius:50%; background: var(--clip); animation: pulse 1.4s ease-in-out infinite; }
+
+/* ---------- the deck ---------- */
+.deck{ background: linear-gradient(180deg,#0D1A26,#050D15); border:2px solid color-mix(in srgb, var(--tape) 18%, transparent); border-radius:10px; padding:10px; display:grid; gap:10px; }
+.deck .screen{ aspect-ratio: 21/8; border-width:1px; }
+.deck__ctrl{ display:flex; align-items:center; gap:14px; padding: 4px 6px 6px; flex-wrap:wrap; }
+.deck__play{
+  appearance:none; border:none; cursor:pointer; flex:none;
+  width:52px; height:52px; border-radius:50%;
+  background: radial-gradient(circle at 34% 30%, var(--amber-2), var(--amber) 55%, #B34A00);
+  box-shadow: 0 5px 0 #7A3100, 0 12px 28px -8px var(--amber);
+  display:grid; place-items:center;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.deck__play:hover{ transform: translateY(2px); box-shadow: 0 3px 0 #7A3100, 0 10px 24px -8px var(--amber); }
+.deck__play:active{ transform: translateY(5px); box-shadow: 0 0 0 #7A3100; }
+.deck__play svg{ width:24px; height:24px; fill: var(--void); }
+.deck__play .ic-pause{ display:none; }
+.deck__play[aria-pressed="true"] .ic-play{ display:none; }
+.deck__play[aria-pressed="true"] .ic-pause{ display:block; }
+.deck__now{ display:grid; gap:3px; min-width:0; flex:1; }
+.deck__title{ font-family:var(--font-mono); font-size:12.5px; letter-spacing:.1em; text-transform:uppercase; color: var(--tape); }
+.deck__sub{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color: color-mix(in srgb, var(--tape) 42%, transparent); }
+.deck__lvl{ display:flex; gap:3px; align-items:flex-end; height:26px; flex:none; }
+.deck__lvl i{ width:4px; height:100%; background:#ffffff14; border-radius:1px; transform-origin:bottom; transform:scaleY(.12); transition: transform .08s linear, background .2s ease; }
+.deck__lvl i.hot{ background: var(--amber); }
+.deck__lvl i.peak{ background: var(--clip); }
+.deck__time{ font-family:var(--font-mono); font-size:12px; letter-spacing:.08em; color: var(--amber); font-variant-numeric: tabular-nums; flex:none; }
+
+/* ---------- past cohorts: cards plugged into a rail ---------- */
+.hist{ position:relative; margin-top: clamp(52px,6vw,88px); display:grid; gap: clamp(40px,5vw,72px); padding-left: 34px; }
+.hist__rail{ position:absolute; left:7px; top:0; bottom:0; width:10px; border-radius:8px; background: linear-gradient(90deg,#0B2438,#12344F 34%,#061A2B 78%,#02101B); box-shadow: inset 1.5px 0 0 #ffffff1c, inset -2px 0 0 #00000099; overflow:hidden; }
+.hist__fill{ position:absolute; left:0; top:0; width:100%; height:0%; background: linear-gradient(90deg,#C24A00,var(--amber-2) 34%,var(--amber) 64%,#A83A00); box-shadow: 0 0 22px var(--amber); }
+
+.ycard{
+  position:relative;
+  background: linear-gradient(168deg,#FFFDF8,var(--tape-2));
+  border:2px solid var(--ink); border-radius: var(--r-card);
+  box-shadow: 6px 9px 0 rgba(0,0,0,.45);
+  color: var(--ink);
+  display:grid; grid-template-columns: minmax(0,1fr) auto;
+  gap: clamp(18px,3vw,52px); align-items:center;
+  padding: clamp(24px,3vw,40px);
+  transition: transform .5s cubic-bezier(.2,.8,.25,1), box-shadow .4s ease;
+}
+.ycard:hover{ transform: translateY(-4px) rotate(-.35deg); box-shadow: 10px 15px 0 rgba(0,0,0,.5); }
+.ycard--r:hover{ transform: translateY(-4px) rotate(.35deg); }
+/* the plug: cable comes off the rail and into the card's left edge */
+.ycard__plug{ position:absolute; left: calc(-34px + 12px); top: 50%; width: 22px; height:14px; transform: translateY(-50%); }
+.ycard__plug i{ position:absolute; top:50%; transform:translateY(-50%); height:5px; border-radius:3px; }
+.ycard__plug i:first-child{ left:-6px; right:6px; background: var(--amber); box-shadow:0 0 12px var(--amber); }
+.ycard__plug i:last-child{ right:-2px; width:9px; height:13px; border-radius:2px; background: var(--ink); }
+.ycard__tab{
+  position:absolute; top:-15px; left: clamp(24px,3vw,40px);
+  display:flex; align-items:center; gap:8px; padding:4px 11px;
+  background: var(--amber); color: var(--void);
+  border:2px solid var(--ink); border-radius:4px;
+  font-family:var(--font-mono); font-size:9.5px; letter-spacing:.16em; font-weight:700; white-space:nowrap;
+}
+.ycard__body{ display:grid; gap:12px; }
+.ycard__title{ font-family:var(--font-display); font-weight:900; text-transform:uppercase; letter-spacing:-0.035em; line-height:.9; font-size: clamp(21px,2.6vw,38px); margin:0; }
+.ycard__body p{ margin:0; font-size: clamp(14px,1.1vw,16px); line-height:1.55; color: color-mix(in srgb, var(--ink) 76%, transparent); max-width:56ch; }
+.ycard__facts{ display:flex; gap:24px; flex-wrap:wrap; }
+.ycard__facts div{ display:grid; gap:2px; }
+.ycard__facts b{ font-family:var(--font-mono); font-size:17px; letter-spacing:.04em; color: var(--rust); font-variant-numeric:tabular-nums; }
+.ycard__facts span{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color: color-mix(in srgb, var(--ink) 55%, transparent); }
+.ycard__year{
+  font-family:var(--font-display); font-weight:900; font-size: clamp(52px,8vw,132px);
+  line-height:.78; letter-spacing:-0.06em; color: transparent;
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--ink) 34%, transparent);
+  font-variant-numeric: tabular-nums; transition: color .45s ease, -webkit-text-stroke-color .45s ease;
+}
+.ycard:hover .ycard__year{ color: var(--amber); -webkit-text-stroke-color: var(--amber); }
+
+/* ============================================================
+   CLOSING — the send console
+   ============================================================ */
+.close{ padding: clamp(56px,7vw,104px) var(--pad) clamp(70px,9vw,130px); background: var(--tape-hi); position:relative; }
+/* the page's cable runs down into the section and terminates at the heading */
+.close__rail{ position:absolute; left:50%; top:0; width:4px; height: clamp(34px,5vw,68px); background: color-mix(in srgb, var(--ink) 55%, transparent); transform:translateX(-50%); border-radius:3px; }
+.close__lead{
+  max-width: var(--maxw); margin: 0 auto clamp(26px,3.4vw,44px);
+  display:grid; justify-items:center; gap: 14px; text-align:center; position:relative;
+}
+.close__eyebrow{ display:flex; align-items:center; gap:12px; color: color-mix(in srgb, var(--ink) 52%, transparent); }
+.close__eyebrow i.bar{ width:26px; height:1px; background: currentColor; display:block; }
+.close__head{ font-size: clamp(40px,8vw,124px); color: var(--ink); }
+.close__head .hl{ color: var(--amber); }
+.close__kicker{ max-width: 44ch; margin:0; font-size: clamp(15px,1.3vw,18px); line-height:1.5; color: color-mix(in srgb, var(--ink) 72%, transparent); }
+
+.close__card{
+  max-width: var(--maxw); margin:0 auto; position:relative; overflow:hidden;
+  background: var(--void); color: var(--tape);
+  border-radius: 10px; border:2px solid var(--ink);
+  box-shadow: 8px 12px 0 color-mix(in srgb, var(--ink) 16%, transparent);
+  padding: clamp(30px,4.4vw,68px);
+}
+.close__glow{ position:absolute; right:-14%; top:-46%; width:64%; aspect-ratio:1; background: radial-gradient(circle, color-mix(in srgb, var(--amber) 48%, transparent), transparent 66%); filter: blur(28px); pointer-events:none; }
+.close__row{ display:grid; grid-template-columns: minmax(0,1fr) auto; gap:clamp(28px,4vw,70px); align-items:center; position:relative; }
+
+/* the physical send button */
+.send{
+  position:relative; display:flex; flex-direction:column; align-items:center; gap:12px;
+  padding: 20px; border-radius: 10px;
+  background: linear-gradient(180deg, #191510, #0B0908);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tape) 15%, transparent);
+}
+.send__screws{ position:absolute; inset:8px; pointer-events:none; }
+.send__screws i{ position:absolute; width:6px; height:6px; border-radius:50%; background:#ffffff26; box-shadow: inset 0 1px 0 #ffffff55; }
+.send__screws i:nth-child(1){ left:0; top:0 } .send__screws i:nth-child(2){ right:0; top:0 }
+.send__screws i:nth-child(3){ left:0; bottom:0 } .send__screws i:nth-child(4){ right:0; bottom:0 }
+.send__btn{
+  appearance:none; border:none; cursor:pointer;
+  width: clamp(112px,13vw,150px); aspect-ratio:1; border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, var(--amber-2), var(--amber) 52%, #B84A00);
+  box-shadow: 0 9px 0 #7A3100, 0 20px 46px -10px var(--amber);
+  color: var(--void); font-family: var(--font-mono); font-weight:700;
+  font-size: clamp(11px,1.2vw,13px); letter-spacing:.16em; text-transform:uppercase;
+  display:grid; place-items:center; text-decoration:none; text-align:center; line-height:1.35;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.send__btn:hover{ transform: translateY(3px); box-shadow: 0 6px 0 #7A3100, 0 16px 40px -10px var(--amber); }
+.send__btn:active{ transform: translateY(9px); box-shadow: 0 0 0 #7A3100, 0 8px 24px -10px var(--amber); }
+.send__cap{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color: color-mix(in srgb, var(--tape) 46%, transparent); }
+.send__lamps{ display:flex; gap:6px; }
+.send__lamps i{ width:7px; height:7px; border-radius:50%; background:#ffffff1f; transition: background .2s ease, box-shadow .2s ease; }
+.send__lamps i.lit{ background: var(--vu); box-shadow:0 0 9px var(--vu); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.foot{ background: var(--void); color: color-mix(in srgb, var(--tape) 70%, transparent); padding: clamp(50px,6vw,84px) var(--pad) 34px; border-top:1px solid color-mix(in srgb, var(--tape) 10%, transparent); }
+.foot__inner{ max-width: var(--maxw); margin:0 auto; display:grid; gap:44px; }
+.foot__top{ display:grid; grid-template-columns: minmax(0,1.4fr) repeat(3, minmax(0,1fr)); gap:32px; }
+/* same mark as the nav, bigger than it but nowhere near a headline */
+.foot__brand{ font-family:var(--font-display); font-weight:900; text-transform:uppercase; letter-spacing:-0.05em; font-size: clamp(28px,3.2vw,44px); line-height:.9; color: var(--tape); margin:0 0 16px; }
+.foot__brand span{ color: var(--amber); }
+.foot h4{ font-family:var(--font-mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color: var(--amber); margin:0 0 14px; font-weight:400; }
+.foot ul{ list-style:none; margin:0; padding:0; display:grid; gap:9px; }
+.foot a{ color:inherit; text-decoration:none; font-size:13.5px; transition:color .2s ease; }
+.foot a:hover{ color: var(--amber); }
+.foot__base{ display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-top:22px; border-top:1px solid color-mix(in srgb, var(--tape) 10%, transparent); font-family:var(--font-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color: color-mix(in srgb, var(--tape) 42%, transparent); }
+
+/* ============================================================
+   CURSOR + REVEALS
+   ============================================================ */
+.cursor{ position:fixed; left:0; top:0; z-index:200; pointer-events:none; width:26px; height:26px; margin:-13px 0 0 -13px; border:1.5px solid var(--amber); border-radius:50%; transition: width .25s ease, height .25s ease, margin .25s ease, background .25s ease, opacity .3s ease; opacity:0; mix-blend-mode: difference; }
+.cursor.on{ opacity:.9; }
+.cursor.grow{ width:50px; height:50px; margin:-25px 0 0 -25px; background: color-mix(in srgb, var(--amber) 20%, transparent); }
+@media (hover: none), (pointer: coarse){ .cursor{ display:none; } }
+
+.rv{ opacity:0; transform: translateY(26px); transition: opacity .8s cubic-bezier(.2,.8,.25,1), transform .8s cubic-bezier(.2,.8,.25,1); }
+.rv.in{ opacity:1; transform:none; }
+.rv-d1{ transition-delay:.08s } .rv-d2{ transition-delay:.16s } .rv-d3{ transition-delay:.24s }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1080px){
+  .lane__grid, .lane__grid--four{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .split__inner, .apply__inner{ grid-template-columns: 1fr; }
+  .foot__top{ grid-template-columns: 1fr 1fr; }
+  /* once the copy and the console stack, centre the whole column —
+     a left-aligned block with a round button under it reads as a mistake */
+  .close__row{ grid-template-columns: 1fr; justify-items:center; text-align:center; }
+  .close__row .prose{ margin-inline:auto; }
+  .band__stats{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 820px){
+  .nav__links{ display:none; }
+  .hero{ height: 180vh; }
+  .vum:nth-of-type(2){ display:none; }
+  /* timeline drops to a single left rail */
+  .tlt__rail{ left:9px; }
+  .tli{ grid-template-columns: 1fr; }
+  .tli__card, .tli--r .tli__card{ grid-column:1; text-align:left; margin-left: 42px; transform: translateX(14px); }
+  .tli.is-on .tli__card{ transform:none; }
+  .tli__rod, .tli--r .tli__rod{ left:9px; right:auto; margin:0 0 0 9px; width:24px; }
+  .tli__socket{ left:9px; }
+}
+@media (max-width: 600px){
+  .lane__grid, .lane__grid--four{ grid-template-columns: minmax(0,1fr); gap: 116px 0; }
+  .foot__top{ grid-template-columns: 1fr; }
+  .ycard{ grid-template-columns: 1fr; }
+  .band__stats{ grid-template-columns: minmax(0,1fr); }
+  .stat__viz{ height:auto; min-height:44px; }
+  .deck__ctrl{ gap:10px; }
+  .deck__lvl{ order:4; width:100%; }
+  .archive__sub{ font-size:10px; }
+}
+@media (max-height: 780px){
+  .hero__sticky{ padding-top: 74px; }
+  .hero__cue{ display:none; }
+}
+/* Short windows: shrink the console rather than drop it. Losing the hero
+   visual entirely is a worse trade than a slimmer rack, and this buys ~55px
+   which is enough to keep the copy from being squashed onto it. */
+@media (max-height: 700px){
+  .rack{ height: clamp(52px, 7vw, 78px); }
+  .bay{ height: clamp(30px, 3.6vw, 42px); }
+  .vum{ width: clamp(74px, 9vw, 104px); }
+  .desk__unit{ padding: 10px 10px 0; gap: 7px; }
+  .hero__inner{ gap: clamp(10px, 1.5vw, 20px); padding-bottom: clamp(10px, 1.5vh, 22px); }
+  .hero__badge{ padding: 7px 13px 7px 11px; }
+}
+/* Below 600px the copy and the console cannot share the fold: measured CTA
+   clearance goes negative at ~590, and an overlapping CTA is worse than no
+   console. Headline wins. */
+@media (max-height: 600px){ .desk{ display:none; } .hero__inner{ padding-bottom:0; } }
+
+/* small-screen display scale — .ln clips rather than wraps, so this is sized,
+   not left to overflow. Verified against measured glyph widths at 320–640px. */
+@media (max-width: 640px){
+  /* Sized from measured em-ratios (SESSIONS 03 = 6.84em, NOBODY BUILT = 7.90em)
+     against the real content box, which is vw minus padding minus a 15px
+     scrollbar. A pure vw ratio cannot subtract that constant, so these use
+     calc(); a plain clamp() overflowed at 320–360 on a scrollbar'd window. */
+  .hero__title{ font-size: clamp(28px, calc(14vw - 9px), 70px); }
+  .statement__head{ font-size: clamp(28px, calc(12vw - 7px), 60px); }
+  .split__head{ font-size: clamp(24px, 8vw, 52px); }
+  .apply__head, .timeline__head{ font-size: clamp(32px, 9.6vw, 58px); }
+  .archive__head{ font-size: clamp(28px, 8.4vw, 50px); }
+  .close__head{ font-size: clamp(36px, 11vw, 64px); }
+  .yr__num{ font-size: clamp(46px, 13vw, 80px); }
+  .band__head{ font-size: clamp(23px, 6.4vw, 34px); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+  .rv{ opacity:1; transform:none; }
+  .cursor{ display:none; }
+}
+</style>
+
+<!-- ========================== NAV ========================== -->
+<nav class="nav" id="nav">
+  <a class="nav__brand" href="#top">Signal<span>.</span></a>
+  <div class="nav__links">
+    <a href="#why">Why Signal</a>
+    <a href="#lanes">The Lanes</a>
+    <a href="#apply">Who Can Apply</a>
+    <a href="#timeline">Timeline</a>
+    <a href="#archive">Archive</a>
+  </div>
+  <a class="btn btn--sm" href="#send"><i class="btn__dot"></i>Send a demo</a>
+  <div class="nav__progress" id="navProgress"></div>
+</nav>
+
+<!-- ========================== HERO ========================= -->
+<header class="hero grain" id="top">
+  <div class="hero__sticky">
+    <canvas id="scope" aria-hidden="true"></canvas>
+    <div class="hero__glow" id="heroGlow"></div>
+
+    <svg class="hero__cables" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M-40 210 C 260 120, 520 300, 780 190 S 1240 60, 1520 180"/>
+      <path class="c2" d="M-40 660 C 300 760, 560 540, 860 660 S 1260 800, 1520 690"/>
+      <path class="c2" d="M-40 420 C 340 330, 640 520, 940 420 S 1300 300, 1520 400"/>
+    </svg>
+
+    <div class="hero__inner" id="heroInner">
+      <div class="hero__eyebrow mono">
+        <span><i class="led"></i>Applications open</span>
+        <i class="rule"></i>
+        <span>Lagos · Accra · Nairobi · Johannesburg</span>
+      </div>
+
+      <h1 class="display hero__title" id="heroTitle">
+        <span class="ln"><span class="solid">Signal</span></span>
+        <span class="ln"><span class="fill" id="heroFill">Sessions 03</span></span>
+      </h1>
+
+      <div class="hero__foot">
+        <div style="display:grid;gap:20px;justify-items:start;">
+          <p class="hero__lede">Twelve rooms. Twelve records. One year.</p>
+          <span class="hero__badge"><i class="led"></i>Fully&nbsp;<b>funded</b></span>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <a class="btn" href="#send"><i class="btn__dot"></i>Send a demo</a>
+            <a class="btn btn--ghost" href="#lanes">See the lanes</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="desk" id="desk" aria-hidden="true">
+      <div class="desk__enter" id="deskEnter">
+      <div class="desk__unit">
+        <div class="desk__top">
+          <div class="vum" id="vumL"></div>
+          <div class="rack" id="rack"></div>
+          <div class="vum" id="vumR"></div>
+        </div>
+        <div class="bay"><svg id="baySvg" preserveAspectRatio="none"></svg></div>
+      </div>
+      </div>
+    </div>
+
+    <div class="hero__cue mono"><span>Scroll</span><i></i></div>
+  </div>
+</header>
+
+<!-- ========================== BAND ========================= -->
+<section class="band grain">
+  <div class="band__inner">
+    <div class="band__eyebrow mono rv"><span>Sessions 03, in full</span><i class="rule"></i></div>
+    <h2 class="band__head rv">This year we are funding <b>twelve residencies and four engineering fellowships</b>, across four countries, for one full year.</h2>
+    <div class="band__stats" id="bandStats"></div>
+  </div>
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker__row" id="tick1"></div>
+    <div class="ticker__row" id="tick2"></div>
+  </div>
+</section>
+
+<main class="tape">
+  <!-- ======================== WHY ========================== -->
+  <section class="statement" id="why">
+    <div class="statement__inner">
+      <div class="statement__eyebrow mono"><span>Why Signal</span><i class="rule"></i></div>
+      <h2 class="display statement__head" data-lines>
+        <span class="ln"><span>We heard a</span></span>
+        <span class="ln"><span class="hl">room</span></span>
+        <span class="ln"><span class="out">nobody built</span></span>
+      </h2>
+      <div class="statement__note">
+        <div class="prose rv"><p>The talent was never the bottleneck. The room was.</p></div>
+        <div class="prose rv rv-d1"><p>There are producers in Surulere making finished records on a laptop, a thirty-dollar interface and a mattress nailed to the wall. The records are good. What they do not have is eight uninterrupted hours in a room where the low end tells the truth.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MANIFESTO ======================= -->
+  <section class="split">
+    <div class="split__inner">
+      <h2 class="display split__head rv">So we built<br>the rooms.<br><span class="hl">Then we started<br>giving them away.</span></h2>
+      <div class="split__aside">
+        <div class="prose rv rv-d1">
+          <p>Signal is not a competition and there is no trophy. It is a year of access — a room with a door that locks, a budget that clears, and an engineer who picks up the phone on a Sunday.</p>
+          <p>Sessions 01 and 02 ran out of two rooms in Lagos. Sixteen residents came through. Between them they released nine projects, four of which charted, and two are now engineering for other people full time. That is the entire measure we care about: did the work get made, and did the person keep making it.</p>
+          <p>For Sessions 03 we are opening outside Nigeria for the first time, and adding a lane for the people who make everybody else sound good.</p>
+        </div>
+        <blockquote class="pullquote rv rv-d2">
+          “I had the songs for two years. I just never had a room quiet enough to hear what was wrong with them.”
+          <cite>Ify O. — Resident, Sessions 02</cite>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== THE LANES ====================== -->
+  <section class="split" id="lanes" style="padding-bottom:0;border-top:none;">
+    <div class="split__inner">
+      <h2 class="display split__head rv">Two lanes.<br>Pick the one<br><span class="hl">that is actually<br>yours.</span></h2>
+      <div class="prose rv rv-d1">
+        <p>The Residency Lane is for artists and producers with a body of work — rough is fine, finished is not required, but there has to be a body of it. Twelve seats across six genres.</p>
+        <p>The Engineering Lane is for the people behind the glass: mixers, masterers, live engineers, room builders. Four seats, same stipend, same year of access.</p>
+        <p>Applying to both is allowed. Getting both is not.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bay-sec">
+    <div class="bay-sec__inner">
+      <div class="lane">
+        <div class="lane__head rv"><h3>Residency Lane</h3><p>12 seats · 6 genres</p></div>
+        <div class="lane__grid" id="laneA"><svg class="lane__rig" aria-hidden="true"></svg></div>
+      </div>
+      <div class="lane">
+        <div class="lane__head rv"><h3>Engineering Lane</h3><p>4 seats · behind the glass</p></div>
+        <div class="lane__grid lane__grid--four" id="laneB"><svg class="lane__rig" aria-hidden="true"></svg></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ========================= ROOM ========================== -->
+<section class="room grain" id="apply">
+  <div class="apply">
+    <div class="apply__inner">
+      <div>
+        <h2 class="display apply__head rv">To send,<br><span class="hl">you must</span></h2>
+        <div class="apply__cta rv rv-d2">
+          <a class="btn" href="#send"><i class="btn__dot"></i>Start the application</a>
+          <span class="apply__fine">Closes 09 Oct 2026 · 23:59 WAT</span>
+        </div>
+      </div>
+      <ul class="apply__list rv rv-d1">
+        <li><b>01</b><span>Be 18 or older. There is no upper limit — Sessions 02 had a fifty-four-year-old resident and he made the best record of the cohort.</span></li>
+        <li><b>02</b><span>Be based in, or able to work from, Nigeria, Ghana, Kenya or South Africa for the length of the residency.</span></li>
+        <li><b>03</b><span>Send three tracks you would put your name on. Rough mixes are fine. We would rather hear a demo that means something than a master that does not.</span></li>
+        <li><b>04</b><span>Own what you send, or have the right to send it. We check.</span></li>
+        <li><b>05</b><span>For the Engineering Lane: two credits, or two things you mixed that we can listen to. Bedroom credits count.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ======================= TIMELINE ====================== -->
+  <div class="timeline" id="timeline">
+    <svg class="timeline__swooshes" viewBox="0 0 1440 1200" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M-40 140 C 380 40, 900 260, 1500 120"/>
+      <path d="M-40 470 C 420 380, 940 600, 1500 450"/>
+      <path d="M-40 800 C 380 700, 980 930, 1500 780"/>
+      <path d="M-40 1110 C 420 1020, 900 1230, 1500 1090"/>
+    </svg>
+    <div class="timeline__inner">
+      <h2 class="display timeline__head rv">Timeline</h2>
+      <div class="tlt" id="tlt">
+        <div class="tlt__rail"><div class="tlt__fill" id="tltFill"></div></div>
+      </div>
+      <div class="tlt__end rv">
+        <div class="tli__socket"><i class="s-out"></i><i class="s-in"></i></div>
+        <p>That is the whole year, start to finish. The only date that needs anything from you is the first one.</p>
+        <a class="btn" href="#send"><i class="btn__dot"></i>Send a demo</a>
+        <span class="apply__fine">Three tracks · rough mixes fine · no cover letter</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= ARCHIVE ======================= -->
+  <div class="archive" id="archive">
+    <div class="archive__inner">
+      <div class="archive__top">
+        <canvas class="archive__bg" id="archBg" aria-hidden="true"></canvas>
+        <h2 class="display archive__head rv">A glimpse at<br>Sessions 02</h2>
+        <p class="archive__sub rv rv-d1">Ten residents · two rooms · one closing night</p>
+      </div>
+
+      <!-- the deck: a real player, driving the trace from the actual signal -->
+      <div class="deck rv rv-d1">
+        <div class="screen">
+          <canvas id="wave"></canvas>
+          <div class="screen__meta">
+            <span class="screen__rec" id="deckState">Stopped</span>
+            <span>Room B · Lagos — closing night, 14 Dec 2025</span>
+          </div>
+        </div>
+        <div class="deck__ctrl">
+          <button class="deck__play" id="playBtn" type="button" aria-pressed="false" aria-label="Play the Room B loop">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ic-play" d="M8 5.5v13l11-6.5z"/><path class="ic-pause" d="M7.5 5h3.5v14H7.5zM13 5h3.5v14H13z"/></svg>
+          </button>
+          <div class="deck__now">
+            <span class="deck__title">Room B — Closing Night Loop</span>
+            <span class="deck__sub">Original composition · gospel changes in F · synthesised live in your browser</span>
+          </div>
+          <div class="deck__lvl" id="deckLvl"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <span class="deck__time" id="deckTime">0:00</span>
+        </div>
+      </div>
+
+      <!-- past cohorts, on the same cable as everything else -->
+      <div class="hist">
+        <div class="hist__rail"><div class="hist__fill" id="histFill"></div></div>
+
+        <article class="ycard rv">
+          <div class="ycard__plug"><i></i><i></i></div>
+          <div class="ycard__tab"><i class="screw"></i>Sessions 02<i class="screw"></i></div>
+          <div class="ycard__body">
+            <h3 class="ycard__title">Two rooms,<br>nine projects</h3>
+            <p>We doubled the intake, added a second room in Yaba, and started paying the stipend monthly instead of up front — which turned out to be the single change that mattered most.</p>
+            <div class="ycard__facts">
+              <div><b>10</b><span>Residents</span></div>
+              <div><b>09</b><span>Projects released</span></div>
+              <div><b>04</b><span>Charted</span></div>
+            </div>
+          </div>
+          <div class="ycard__year">2025</div>
+        </article>
+
+        <article class="ycard ycard--r rv">
+          <div class="ycard__plug"><i></i><i></i></div>
+          <div class="ycard__tab"><i class="screw"></i>Sessions 01<i class="screw"></i></div>
+          <div class="ycard__body">
+            <h3 class="ycard__title">One room, six people,<br>no plan</h3>
+            <p>The first run was a single room above a barber shop and a spreadsheet. Six residents, no application form, and a booking calendar we managed over WhatsApp. It should not have worked.</p>
+            <div class="ycard__facts">
+              <div><b>06</b><span>Residents</span></div>
+              <div><b>01</b><span>Room</span></div>
+              <div><b>02</b><span>Still engineering</span></div>
+            </div>
+          </div>
+          <div class="ycard__year">2023</div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== CLOSING ======================== -->
+<section class="close" id="send">
+  <div class="close__rail"></div>
+
+  <div class="close__lead">
+    <div class="close__eyebrow mono rv"><i class="bar"></i><span>Applications open 07 Sep 2026</span><i class="bar"></i></div>
+    <h2 class="display close__head rv rv-d1">Ready <span class="hl">to send?</span></h2>
+    <p class="close__kicker rv rv-d2">Two lanes, sixteen seats, one year of room time. The whole thing starts with three tracks.</p>
+  </div>
+
+  <div class="close__card grain">
+    <div class="close__glow"></div>
+    <div class="close__row">
+      <div class="prose rv rv-d1" style="color:color-mix(in srgb, var(--tape) 80%, transparent);">
+        <p>Three tracks. No cover letter, no showreel, no pitch deck. Tell us where you are and what you are trying to make, and let the music do the rest.</p>
+        <p>We listen to every single submission, all the way through, at least once. That is a promise we have kept for three years and it is the reason applications close when they do.</p>
+      </div>
+      <div class="send rv rv-d2">
+        <div class="send__screws"><i></i><i></i><i></i><i></i></div>
+        <div class="send__lamps" id="sendLamps"><i></i><i></i><i></i><i></i><i></i></div>
+        <a class="send__btn" id="sendBtn" href="#apply">Send<br>a demo</a>
+        <span class="send__cap">Opens 07 Sep 2026</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= FOOTER ======================== -->
+<footer class="foot">
+  <div class="foot__inner">
+    <div class="foot__top">
+      <div>
+        <p class="foot__brand">Signal<span>.</span></p>
+        <div class="prose" style="font-size:14px;max-width:34ch;"><p>A studio residency for artists, producers and engineers across West and East Africa. Rooms in Lagos, Accra, Nairobi and Johannesburg.</p></div>
+      </div>
+      <div><h4>Sessions</h4><ul><li><a href="#lanes">Residency Lane</a></li><li><a href="#lanes">Engineering Lane</a></li><li><a href="#apply">Eligibility</a></li><li><a href="#timeline">Key dates</a></li><li><a href="#archive">Past cohorts</a></li></ul></div>
+      <div><h4>The rooms</h4><ul><li><a href="#archive">Room A — Yaba</a></li><li><a href="#archive">Room B — Lekki</a></li><li><a href="#archive">Room C — Osu</a></li><li><a href="#archive">Room D — Westlands</a></li><li><a href="#archive">Room E — Braamfontein</a></li></ul></div>
+      <div><h4>Contact</h4><ul><li><a href="#send">demos@signal.sessions</a></li><li><a href="#send">Press kit</a></li><li><a href="#send">Partner with us</a></li><li><a href="#send">Submission terms</a></li></ul></div>
+    </div>
+    <div class="foot__base"><span>Signal Sessions 03 · 2026</span><span>We listen to everything</span></div>
+  </div>
+</footer>
+
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs){ var n = document.createElementNS(NS, tag); for (var k in attrs) n.setAttribute(k, attrs[k]); return n; }
+  function clamp(v,a,b){ return v < a ? a : v > b ? b : v; }
+
+  /* =========================================================
+     DATA
+     ========================================================= */
+  /* Gospel leads the lane — it is the room's loudest tradition and the one
+     with the deepest bench, so it sets the tone for the rest. */
+  var LANE_A = [
+    { ch:"CH 01", t:["Gospel &","Choral"], accent:"#FF6A00", lvl:88, d:"Live players, real rooms, arrangement chops. Choir work and church-band experience count double here.", tools:["Pro Tools","Nord Stage","Sibelius","Waves","Logic Pro"] },
+    { ch:"CH 02", t:["Afro-","beats"], accent:"#3DD97A", lvl:82, d:"Pop-facing, rhythm-first, built to travel. If your records live or die on the drums and the top line, this is your lane.", tools:["Ableton Live","Serum","Splice","Logic Pro","FL Studio"] },
+    { ch:"CH 03", t:["Ama-","piano"], accent:"#7FB2FF", lvl:74, d:"Log drums, long arrangements, patience. We want the eight-minute version, not the radio edit.", tools:["FL Studio","Nexus","Serato","Xfer LFO","Ableton"] },
+    { ch:"CH 04", t:["Alté &","Alt-R&B"], accent:"#C07CE8", lvl:66, d:"Left of centre, texture over polish. Bring the demo that your friends said was too weird.", tools:["Logic Pro","Arturia V","Tape Sim","Pro Tools","Ableton"] },
+    { ch:"CH 05", t:["Drill &","Hip-Hop"], accent:"#E0B321", lvl:71, d:"Bars, sample flips, and the sound of a specific street. Regional accents welcome and encouraged.", tools:["FL Studio","Kontakt","Maschine","Antares","Serato"] },
+    { ch:"CH 06", t:["Highlife","& Fusion"], accent:"#FF2D0E", lvl:59, d:"Guitars, horns, and anything that grew out of a live band. Bring the players — we will mic them.", tools:["Pro Tools","Neumann U87","Reason","Kontakt","Ableton"] }
+  ];
+  var LANE_B = [
+    { ch:"CH 07", t:["Mixing"], accent:"#FF6A00", lvl:79, d:"You make other people's records sound like records. Send two mixes and the raw stems you started from.", tools:["Pro Tools","FabFilter","Waves","SSL","Slate"] },
+    { ch:"CH 08", t:["Mast-","ering"], accent:"#3DD97A", lvl:85, d:"Last set of ears before it ships. Loudness discipline, translation, and the confidence to leave things alone.", tools:["Ozone","Weiss","Sonarworks","Nugen","TC 6000"] },
+    { ch:"CH 09", t:["Live","Sound"], accent:"#7FB2FF", lvl:68, d:"Front of house, monitors, festival changeovers. If you have saved a set with forty seconds of line check, we want you.", tools:["DiGiCo","Yamaha CL5","Smaart","Shure","Dante"] },
+    { ch:"CH 10", t:["Room","Building"], accent:"#E0B321", lvl:62, d:"Acoustics, treatment, and turning a spare bedroom into something you can trust. The least glamorous seat and the most useful.", tools:["REW","Auralex","SketchUp","Sonarworks","Trinnov"] }
+  ];
+
+  function cardHTML(c, i){
+    return '<article class="card">' +
+      '<div class="card__hang" style="--accent:'+c.accent+'">' +
+        '<div class="card__tab"><i class="screw"></i>'+c.ch+'<i class="screw"></i></div>' +
+        '<div class="card__body">' +
+          '<h4 class="card__title">'+c.t.map(function(l){return '<span>'+l+'</span>';}).join('')+'</h4>' +
+          '<button class="card__toggle" type="button" aria-expanded="false">Details<i></i></button>' +
+          '<div class="card__drawer"><div><p>'+c.d+'</p></div></div>' +
+          '<div class="chips">'+c.tools.map(function(t){return '<span>'+t+'</span>';}).join('')+'</div>' +
+          '<div class="meter">' +
+            '<div class="meter__ticks">'+Array(21).join('<i></i>')+'</div>' +
+            '<div class="meter__bar"><div class="meter__fill" data-lvl="'+c.lvl+'" style="--d:'+(i*0.09)+'s"></div></div>' +
+            '<div class="meter__legend"><span><b>Demo</b></span><span>Master</span></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</article>';
+  }
+  document.getElementById("laneA").insertAdjacentHTML("beforeend", LANE_A.map(cardHTML).join(""));
+  document.getElementById("laneB").insertAdjacentHTML("beforeend", LANE_B.map(cardHTML).join(""));
+
+  /* =========================================================
+     THE CABLE RIG
+     One SVG per lane, drawn from measured card positions, so
+     the cable sags between real anchors and stays correct at
+     every breakpoint. Hovering a card tugs its cable — and,
+     less, the cables either side of it.
+     ========================================================= */
+  var RIG_DROP = 78;     /* cable sits this far above the card top */
+  var rigs = [];
+
+  function buildRig(gridId){
+    var grid = document.getElementById(gridId);
+    var svg = grid.querySelector(".lane__rig");
+    var cards = [].slice.call(grid.querySelectorAll(".card"));
+    var rig = { grid: grid, svg: svg, cards: cards, hover: [], target: [], parts: [], rows: [] };
+    cards.forEach(function(c, i){
+      rig.hover.push(0); rig.target.push(0);
+      c.addEventListener("mouseenter", function(){ rig.target[i] = 1; });
+      c.addEventListener("mouseleave", function(){ rig.target[i] = 0; });
+      c.addEventListener("focusin",  function(){ rig.target[i] = 1; });
+      c.addEventListener("focusout", function(){ rig.target[i] = 0; });
+    });
+    rigs.push(rig);
+    layoutRig(rig);
+    return rig;
+  }
+
+  /* Group cards into visual rows and create the SVG nodes once. */
+  function layoutRig(rig){
+    var gb = rig.grid.getBoundingClientRect();
+    rig.svg.setAttribute("viewBox", "0 0 " + gb.width + " " + gb.height);
+    rig.svg.setAttribute("width", gb.width);
+    rig.svg.setAttribute("height", gb.height);
+    while (rig.svg.firstChild) rig.svg.removeChild(rig.svg.firstChild);
+
+    var byRow = {};
+    rig.cards.forEach(function(c, i){
+      var r = c.getBoundingClientRect();
+      var top = Math.round(r.top - gb.top);
+      var key = String(top);
+      (byRow[key] = byRow[key] || []).push({ i:i, cx: r.left - gb.left + r.width/2, top: top, accent: getComputedStyle(c.querySelector(".card__hang")).getPropertyValue("--accent").trim() });
+    });
+
+    rig.rows = [];
+    Object.keys(byRow).forEach(function(k){
+      var anchors = byRow[k].sort(function(a,b){ return a.cx - b.cx; });
+      var cableY = anchors[0].top - RIG_DROP;
+      var cable = el("path", { "class":"cable" });
+      rig.svg.appendChild(cable);
+      var drops = anchors.map(function(a){
+        var d = el("path", { "class":"drop" });
+        rig.svg.appendChild(d);
+        return d;
+      });
+      /* end terminators, then the jack hardware on top */
+      [0, 1].forEach(function(side){
+        rig.svg.appendChild(el("rect", { "class":"term", x: side ? gb.width-7 : 0, y: cableY-6, width:7, height:12, rx:2 }));
+      });
+      var jacks = anchors.map(function(a){
+        var g = el("g", {});
+        g.appendChild(el("circle", { "class":"collar", cx:a.cx, cy:a.top-2, r:7 }));
+        g.appendChild(el("circle", { "class":"jack", cx:a.cx, cy:cableY, r:8 }));
+        var dot = el("circle", { "class":"jackdot", cx:a.cx, cy:cableY, r:3.4 });
+        dot.style.fill = a.accent || "var(--amber)";
+        g.appendChild(dot);
+        rig.svg.appendChild(g);
+        return g;
+      });
+      rig.rows.push({ anchors: anchors, cableY: cableY, cable: cable, drops: drops, jacks: jacks, width: gb.width });
+    });
+    drawRig(rig);
+  }
+
+  /* Redraw the paths for the current hover state. */
+  function drawRig(rig){
+    rig.rows.forEach(function(row){
+      var a = row.anchors, y = row.cableY, w = row.width;
+      /* how far each anchor is pulled down right now */
+      function pull(idx){
+        var own = rig.hover[a[idx].i] * 9;
+        var left = idx > 0 ? rig.hover[a[idx-1].i] * 3 : 0;
+        var right = idx < a.length-1 ? rig.hover[a[idx+1].i] * 3 : 0;
+        return own + left + right;
+      }
+      /* the cable: a sagging curve through every jack */
+      var d = "M 0 " + (y + 3);
+      var prevX = 0, prevY = y + 3;
+      for (var i = 0; i < a.length; i++){
+        var x = a[i].cx, yy = y + pull(i);
+        var midX = (prevX + x) / 2;
+        var sag = 7 + Math.abs(x - prevX) * 0.035 + pull(i) * 0.5;
+        d += " Q " + midX + " " + (Math.max(prevY, yy) + sag) + " " + x + " " + yy;
+        prevX = x; prevY = yy;
+      }
+      d += " Q " + ((prevX + w) / 2) + " " + (prevY + 7 + (w - prevX) * 0.035) + " " + w + " " + (y + 3);
+      row.cable.setAttribute("d", d);
+
+      /* the plug line: jack down into the top of the card, with a kink */
+      a.forEach(function(an, i){
+        var top = y + pull(i), bottom = an.top - 2;
+        var bend = 4 + rig.hover[an.i] * 5;
+        row.drops[i].setAttribute("d",
+          "M " + an.cx + " " + top +
+          " C " + (an.cx + bend) + " " + (top + (bottom-top)*0.38) +
+          " " + (an.cx - bend) + " " + (top + (bottom-top)*0.7) +
+          " " + an.cx + " " + bottom);
+        row.jacks[i].setAttribute("transform", "translate(0," + pull(i) + ")");
+        /* the collar rides with the card, not the cable */
+        row.jacks[i].firstChild.setAttribute("transform", "translate(0," + (-pull(i)) + ")");
+      });
+    });
+  }
+
+  buildRig("laneA");
+  buildRig("laneB");
+
+  /* details drawers change card height, so the rig has to be re-laid out */
+  document.querySelectorAll(".card__toggle").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var open = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", open ? "false" : "true");
+      setTimeout(function(){ rigs.forEach(layoutRig); }, 470);
+    });
+  });
+
+  var rlTimer;
+  addEventListener("resize", function(){
+    clearTimeout(rlTimer);
+    rlTimer = setTimeout(function(){ rigs.forEach(layoutRig); sizeScope(); sizeWave(); sizeArchBg(); drawBay(); }, 160);
+  });
+
+  /* =========================================================
+     TIMELINE — centre rail, alternating sides
+     ========================================================= */
+  var DATES = [
+    ["07 Sep 2026", "Submissions open", "Both lanes, all four countries"],
+    ["09 Oct 2026", "Submissions close", "23:59 WAT — no extensions, we have tried"],
+    ["12–16 Oct 2026", "First listen", "Every submission, all the way through"],
+    ["23 Oct 2026", "Shortlist published", "Roughly 60 names per lane"],
+    ["07 Nov 2026", "Live session day", "Lagos and Accra, in person, one day only"],
+    ["13–15 Nov 2026", "Callback results", "By email, and posted publicly"],
+    ["24–27 Nov 2026", "Resident interviews", "Forty minutes, no panel, no slides"],
+    ["05 Dec 2026", "Residents announced", "Twelve names and four engineers"],
+    ["12 Jan 2027", "Rooms open", "Sessions 03 begins"]
+  ];
+  /* Side is set here, not with :nth-child — the rail shares the parent, so a
+     positional selector would flip every card if a sibling were ever added. */
+  document.getElementById("tlt").insertAdjacentHTML("beforeend", DATES.map(function(d, i){
+    return '<div class="tli' + (i % 2 ? ' tli--r' : '') + '">' +
+      '<div class="tli__rod"></div>' +
+      '<div class="tli__socket"><i class="s-out"></i><i class="s-in"></i></div>' +
+      '<div class="tli__card"><span class="tli__date">'+d[0]+'</span>' +
+      '<div class="tli__what">'+d[1]+'<small>'+d[2]+'</small></div></div>' +
+    '</div>';
+  }).join(""));
+
+  /* =========================================================
+     THE FIGURES
+     Each one gets the visual its unit deserves: countable seats
+     for places, an arc for a span of time, a level for money.
+     ========================================================= */
+  var STATS = [
+    { viz:"seats", count:12, num:"12",     label:"Residencies",             note:"Two per genre lane" },
+    { viz:"seats", count:4,  num:"04",     label:"Engineering fellowships", note:"Behind the glass",  lg:true },
+    { viz:"arc",                num:"365", label:"Days of room access",     note:"Jan 2027 – Jan 2028" },
+    { viz:"meter",              num:"₦2.5m", label:"Stipend, each",         note:"Paid monthly, not up front" }
+  ];
+  document.getElementById("bandStats").innerHTML = STATS.map(function(s, i){
+    var viz = "";
+    if (s.viz === "seats"){
+      var cells = "";
+      for (var k = 0; k < s.count; k++) cells += '<i style="--sd:' + (0.35 + k * 0.055).toFixed(2) + 's"></i>';
+      viz = '<div class="seats' + (s.lg ? " seats--lg" : "") + '">' + cells + '</div>';
+    } else if (s.viz === "arc"){
+      viz = '<svg class="arc" viewBox="0 0 74 74" aria-hidden="true">' +
+            '<circle class="trk" cx="37" cy="37" r="32"/><circle class="val" cx="37" cy="37" r="32"/></svg>';
+    } else {
+      viz = '<div class="lvlbar"><div class="lvlbar__ticks">' + Array(17).join("<i></i>") +
+            '</div><div class="lvlbar__bar"><div class="lvlbar__fill"></div></div></div>';
+    }
+    return '<article class="stat rv' + (i ? " rv-d" + Math.min(i, 3) : "") + '">' +
+      '<div class="stat__viz">' + viz + '</div>' +
+      '<b class="stat__num">' + s.num + '</b>' +
+      '<span class="stat__label">' + s.label + '</span>' +
+      '<span class="stat__note">' + s.note + '</span>' +
+    '</article>';
+  }).join("");
+
+  /* =========================================================
+     TICKER
+     ========================================================= */
+  var WORDS = ["Afrobeats","Amapiano","Alté","Gospel","Drill","Highlife","Mixing","Mastering","Live Sound","Room Building"];
+  var row = WORDS.map(function(w){ return w + ' <i>/</i>'; }).join(" ");
+  document.getElementById("tick1").innerHTML = row;
+  document.getElementById("tick2").innerHTML = row;
+
+  /* =========================================================
+     THE DESK — VU needles, channel strips, patch bay
+     ========================================================= */
+  function vuMeter(label){
+    return '<svg viewBox="0 0 200 108">' +
+      '<path d="M18 88 A 86 86 0 0 1 182 88" fill="none" stroke="#00000022" stroke-width="1"/>' +
+      '<path d="M112 26 A 86 86 0 0 1 178 74" fill="none" stroke="#D0250B" stroke-width="4" opacity=".85"/>' +
+      '<g stroke="#2A2118" stroke-width="1.6">' +
+        '<path d="M28 74 L34 70"/><path d="M45 55 L50 60"/><path d="M70 39 L73 45"/>' +
+        '<path d="M100 32 L100 39"/><path d="M130 39 L127 45"/><path d="M155 55 L150 60"/><path d="M172 74 L166 70"/>' +
+      '</g>' +
+      '<text x="100" y="66" text-anchor="middle" font-family="ui-monospace,monospace" font-size="13" fill="#2A2118" letter-spacing="2">'+label+'</text>' +
+      '<text x="100" y="82" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8" fill="#2A211899" letter-spacing="1.5">VU</text>' +
+      '<path class="needle" d="M100 88 L100 30" stroke="#1A1410" stroke-width="2" stroke-linecap="round"/>' +
+      '<circle cx="100" cy="88" r="5" fill="#1A1410"/>' +
+    '</svg>';
+  }
+  document.getElementById("vumL").innerHTML = vuMeter("L");
+  document.getElementById("vumR").innerHTML = vuMeter("R");
+  var needles = [].slice.call(document.querySelectorAll(".vum .needle"));
+  var nAngle = [0, 0], nTarget = [0, 0];
+
+  var rack = document.getElementById("rack");
+  var STRIPS = 16, frag = "";
+  for (var s = 0; s < STRIPS; s++){
+    frag += '<div class="rack__strip">' +
+      '<div class="rack__knob" style="--rot:'+Math.round(-140 + Math.random()*280)+'deg"></div>' +
+      '<div class="rack__vuwrap"><div class="rack__vu"></div></div>' +
+      '<div class="rack__lbl">'+String(s+1).padStart(2,"0")+'</div>' +
+    '</div>';
+  }
+  rack.innerHTML = frag;
+  var vus = [].slice.call(rack.querySelectorAll(".rack__vu")), levels = [], targets = [];
+  vus.forEach(function(){ levels.push(0.12); targets.push(0.3); });
+
+  /* patch bay: two rows of sockets with cables looped between them */
+  var baySvg = document.getElementById("baySvg");
+  function drawBay(){
+    var r = baySvg.parentElement.getBoundingClientRect();
+    if (!r.width) return;
+    baySvg.setAttribute("viewBox", "0 0 " + r.width + " " + r.height);
+    while (baySvg.firstChild) baySvg.removeChild(baySvg.firstChild);
+    var n = Math.max(12, Math.floor(r.width / 34)), step = r.width / n;
+    var yTop = r.height * 0.32, yBot = r.height * 0.74, pts = [];
+    for (var i = 0; i < n; i++){
+      var x = step * (i + 0.5);
+      pts.push({ x:x, yTop:yTop, yBot:yBot });
+      [yTop, yBot].forEach(function(y){
+        baySvg.appendChild(el("circle", { cx:x, cy:y, r:5, fill:"#000", stroke:"#ffffff26", "stroke-width":"1.5" }));
+        baySvg.appendChild(el("circle", { cx:x, cy:y, r:1.8, fill:"#ffffff1a" }));
+      });
+    }
+    /* a few patch cables, deterministic so they do not jump around */
+    var pairs = [[1,5],[3,9],[7,2],[Math.max(0,n-3), Math.max(0,n-8)]];
+    pairs.forEach(function(p, k){
+      var a = pts[p[0] % n], b = pts[p[1] % n];
+      if (!a || !b) return;
+      var path = el("path", { fill:"none", stroke: k % 2 ? "#FF6A00" : "#FFA23D", "stroke-width":"2.5", "stroke-linecap":"round", opacity:".85" });
+      path.setAttribute("d", "M " + a.x + " " + a.yTop + " Q " + ((a.x+b.x)/2) + " " + (r.height + 16) + " " + b.x + " " + b.yBot);
+      path.setAttribute("class", "patch");
+      baySvg.appendChild(path);
+    });
+  }
+  drawBay();
+
+  /* =========================================================
+     HERO SCOPE — the room's signal, on a canvas
+     ========================================================= */
+  var scope = document.getElementById("scope"), sctx = scope.getContext("2d"), sw = 0, sh = 0;
+  function sizeScope(){
+    var r = scope.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    sw = r.width; sh = r.height;
+    scope.width = sw * dpr; scope.height = sh * dpr;
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  sizeScope();
+  function drawScope(t){
+    if (!sw) return;
+    sctx.clearRect(0, 0, sw, sh);
+    var mid = sh * 0.5;
+    /* the trace */
+    for (var pass = 0; pass < 2; pass++){
+      sctx.beginPath();
+      for (var x = 0; x <= sw; x += 3){
+        var u = x / sw;
+        var amp = Math.sin(u * Math.PI) * sh * 0.17;
+        var y = mid
+          + Math.sin(u * 15 + t * 0.0012) * amp
+          + Math.sin(u * 37 - t * 0.0019) * amp * 0.4
+          + Math.sin(u * 71 + t * 0.0031) * amp * 0.16;
+        x === 0 ? sctx.moveTo(x, y) : sctx.lineTo(x, y);
+      }
+      sctx.strokeStyle = pass === 0 ? "rgba(255,106,0,.16)" : "rgba(255,162,61,.5)";
+      sctx.lineWidth = pass === 0 ? 11 : 1.6;
+      sctx.stroke();
+    }
+    /* the floor spectrum */
+    var n = Math.floor(sw / 16);
+    for (var i = 0; i < n; i++){
+      var e = Math.sin((i / n) * Math.PI);
+      var h = (Math.sin(t * 0.002 + i * 0.55) * 0.5 + 0.5) * e * sh * 0.13 + 2;
+      sctx.fillStyle = "rgba(255,106,0," + (0.05 + e * 0.14) + ")";
+      sctx.fillRect(i * 16 + 4, sh - h, 8, h);
+    }
+  }
+
+  /* =========================================================
+     THE ROOM B LOOP
+     An original piece, synthesised in the browser — not a
+     recording, so there is nothing to license and nothing to
+     fetch. Gospel I–vi–ii–V in F, drawbar organ over a walking
+     bass. The trace below is driven by the real output through
+     an analyser, so what you see is what you are hearing.
+     ========================================================= */
+  var AC = null, master = null, analyser = null, aData = null;
+  var playing = false, lookahead = null, nextTime = 0, stepN = 0, startedAt = 0;
+  var BPM = 74, BEAT = 60 / BPM;
+
+  /* I–vi–ii–V in F: Fmaj9 · Dm9 · Gm11 · C13 */
+  var CHORDS = [
+    { v:[57,60,64,67,72], bass:[41,45,48,45] },
+    { v:[53,57,60,65,69], bass:[38,41,45,48] },
+    { v:[55,58,62,65,70], bass:[43,46,50,46] },
+    { v:[52,55,58,62,67], bass:[36,40,43,47] }
+  ];
+  function hz(n){ return 440 * Math.pow(2, (n - 69) / 12); }
+
+  function ensureAudio(){
+    if (AC) return;
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    master = AC.createGain(); master.gain.value = 0;
+    var comp = AC.createDynamicsCompressor();
+    comp.threshold.value = -18; comp.ratio.value = 4;
+    analyser = AC.createAnalyser(); analyser.fftSize = 2048;
+    aData = new Uint8Array(analyser.fftSize);
+    master.connect(comp); comp.connect(analyser); analyser.connect(AC.destination);
+  }
+
+  /* a drawbar-ish organ tone: fundamental + octave + twelfth, with Leslie wobble */
+  function organ(note, t, dur, gain){
+    var out = AC.createGain();
+    out.gain.setValueAtTime(0, t);
+    out.gain.linearRampToValueAtTime(gain, t + 0.045);
+    out.gain.setValueAtTime(gain, t + dur - 0.18);
+    out.gain.linearRampToValueAtTime(0, t + dur);
+    var lfo = AC.createOscillator(), lfoG = AC.createGain();
+    lfo.frequency.value = 5.4; lfoG.gain.value = gain * 0.16;
+    lfo.connect(lfoG); lfoG.connect(out.gain);
+    lfo.start(t); lfo.stop(t + dur);
+    [[1, 1], [2, 0.42], [3, 0.22], [4, 0.12]].forEach(function(p){
+      var o = AC.createOscillator(), g = AC.createGain();
+      o.type = "sine"; o.frequency.value = hz(note) * p[0];
+      g.gain.value = p[1];
+      o.connect(g); g.connect(out);
+      o.start(t); o.stop(t + dur);
+    });
+    out.connect(master);
+  }
+
+  function bassNote(note, t, dur){
+    var o = AC.createOscillator(), g = AC.createGain(), f = AC.createBiquadFilter();
+    o.type = "triangle"; o.frequency.value = hz(note);
+    f.type = "lowpass"; f.frequency.value = 520;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.5, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+    o.connect(f); f.connect(g); g.connect(master);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+
+  function kick(t){
+    var o = AC.createOscillator(), g = AC.createGain();
+    o.frequency.setValueAtTime(128, t);
+    o.frequency.exponentialRampToValueAtTime(44, t + 0.12);
+    g.gain.setValueAtTime(0.72, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + 0.3);
+  }
+
+  function hat(t, open){
+    var len = open ? 0.16 : 0.045;
+    var buf = AC.createBuffer(1, Math.ceil(AC.sampleRate * len), AC.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    var src = AC.createBufferSource(); src.buffer = buf;
+    var f = AC.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 7200;
+    var g = AC.createGain(); g.gain.value = open ? 0.12 : 0.075;
+    src.connect(f); f.connect(g); g.connect(master);
+    src.start(t);
+  }
+
+  /* one eighth note */
+  function playStep(i, t){
+    var inBar = i % 8, barIdx = Math.floor(i / 8) % 4, ch = CHORDS[barIdx];
+    if (inBar === 0){
+      ch.v.forEach(function(n, k){ organ(n, t + k * 0.012, BEAT * 3.6, 0.07); });
+    }
+    if (inBar % 2 === 0) bassNote(ch.bass[inBar / 2], t, BEAT * 0.85);
+    if (inBar === 0 || inBar === 6) kick(t);
+    if (inBar % 2 === 1) hat(t, inBar === 7);
+  }
+
+  function scheduler(){
+    if (!playing) return;
+    while (nextTime < AC.currentTime + 0.28){
+      playStep(stepN, nextTime);
+      nextTime += BEAT / 2;
+      stepN++;
+    }
+  }
+
+  var playBtn = document.getElementById("playBtn");
+  var deckState = document.getElementById("deckState");
+  var deckTime = document.getElementById("deckTime");
+  var deckLvl = [].slice.call(document.querySelectorAll("#deckLvl i"));
+
+  function stopLoop(){
+    playing = false;
+    clearInterval(lookahead); lookahead = null;
+    if (master) master.gain.cancelScheduledValues(AC.currentTime),
+                master.gain.setTargetAtTime(0, AC.currentTime, 0.06);
+    playBtn.setAttribute("aria-pressed", "false");
+    playBtn.setAttribute("aria-label", "Play the Room B loop");
+    deckState.textContent = "Stopped";
+  }
+  function startLoop(){
+    ensureAudio();
+    if (AC.state === "suspended") AC.resume();
+    playing = true;
+    stepN = 0;
+    nextTime = AC.currentTime + 0.08;
+    startedAt = AC.currentTime;
+    master.gain.cancelScheduledValues(AC.currentTime);
+    master.gain.setValueAtTime(0.0001, AC.currentTime);
+    master.gain.setTargetAtTime(0.85, AC.currentTime, 0.25);
+    lookahead = setInterval(scheduler, 40);
+    scheduler();
+    playBtn.setAttribute("aria-pressed", "true");
+    playBtn.setAttribute("aria-label", "Pause the Room B loop");
+    deckState.textContent = "Playing";
+  }
+  playBtn.addEventListener("click", function(){ playing ? stopLoop() : startLoop(); });
+
+  /* =========================================================
+     ARCHIVE WAVEFORM
+     ========================================================= */
+  /* the faint bed of beats the archive title sits on */
+  var abg = document.getElementById("archBg"), abx = abg.getContext("2d"), aw = 0, ah = 0;
+  function sizeArchBg(){
+    var r = abg.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    aw = r.width; ah = r.height;
+    abg.width = aw * dpr; abg.height = ah * dpr;
+    abx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function drawArchBg(t){
+    if (!aw) return;
+    abx.clearRect(0, 0, aw, ah);
+    var mid = ah / 2, n = Math.floor(aw / 11);
+    for (var i = 0; i < n; i++){
+      var env = Math.sin((i / n) * Math.PI);
+      var wob = Math.sin(t * 0.0011 + i * 0.42) * 0.5 + 0.5;
+      var h = (0.16 + wob * 0.84) * env * ah * 0.82 + 2;
+      abx.fillStyle = i % 7 === 0 ? "rgba(255,106,0,.5)" : "rgba(242,233,216,.19)";
+      abx.fillRect(i * 11 + 3, mid - h / 2, 5, h);
+    }
+  }
+
+  var cv = document.getElementById("wave"), cx2 = cv.getContext("2d"), cw = 0, chh = 0, bars = [];
+  function sizeWave(){
+    var r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    cw = r.width; chh = r.height;
+    cv.width = cw * dpr; cv.height = chh * dpr;
+    cx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.max(40, Math.floor(cw / 7));
+    if (bars.length !== n){ bars = []; for (var i = 0; i < n; i++) bars.push(Math.random() * 0.5 + 0.12); }
+  }
+  sizeWave();
+  sizeArchBg();
+  function drawWave(t){
+    if (!cw) return;
+    cx2.clearRect(0, 0, cw, chh);
+    var mid = chh / 2, bw = cw / bars.length, i, h, a, env;
+
+    if (playing && analyser){
+      /* real output: bar heights are the actual sample amplitudes */
+      analyser.getByteTimeDomainData(aData);
+      var span = Math.floor(aData.length / bars.length), peak = 0;
+      for (i = 0; i < bars.length; i++){
+        var lo = 0;
+        for (var j = 0; j < span; j++){
+          var v = Math.abs(aData[i * span + j] - 128) / 128;
+          if (v > lo) lo = v;
+        }
+        bars[i] += (lo - bars[i]) * 0.45;
+        if (bars[i] > peak) peak = bars[i];
+        h = Math.max(2, bars[i] * chh * 1.5);
+        a = 0.35 + bars[i] * 1.4;
+        cx2.fillStyle = i % 9 === 0 ? "rgba(255,106,0," + Math.min(a, 1) + ")"
+                                    : "rgba(242,233,216," + Math.min(a * 0.5, .8) + ")";
+        cx2.fillRect(i * bw + bw * 0.22, mid - h / 2, Math.max(1, bw * 0.56), h);
+      }
+      /* the deck's own level bank, and elapsed time */
+      for (i = 0; i < deckLvl.length; i++){
+        var lit = peak * deckLvl.length;
+        var on = i < lit ? Math.min(1, lit - i) : 0.12;
+        deckLvl[i].style.transform = "scaleY(" + Math.max(0.12, on) + ")";
+        deckLvl[i].className = i > deckLvl.length - 3 ? (on > 0.5 ? "peak" : "") : (on > 0.3 ? "hot" : "");
+      }
+      var secs = Math.max(0, AC.currentTime - startedAt);
+      deckTime.textContent = Math.floor(secs / 60) + ":" + String(Math.floor(secs % 60)).padStart(2, "0");
+    } else {
+      for (i = 0; i < bars.length; i++){
+        env = Math.sin((i / bars.length) * Math.PI);
+        var wob = Math.sin(t * 0.0016 + i * 0.34) * 0.5 + 0.5;
+        h = bars[i] * env * wob * chh * 0.9 + 2;
+        a = 0.22 + env * wob * 0.72;
+        cx2.fillStyle = i % 9 === 0 ? "rgba(255,106,0," + a + ")" : "rgba(242,233,216," + (a * 0.4) + ")";
+        cx2.fillRect(i * bw + bw * 0.22, mid - h / 2, Math.max(1, bw * 0.56), h);
+      }
+    }
+    cx2.strokeStyle = "rgba(255,106,0,.5)"; cx2.lineWidth = 1;
+    cx2.beginPath(); cx2.moveTo(0, mid); cx2.lineTo(cw, mid); cx2.stroke();
+  }
+
+  /* =========================================================
+     REVEALS
+     ========================================================= */
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
+  }, { threshold: 0.14, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".rv").forEach(function(e){ io.observe(e); });
+
+  function prepLines(root){
+    root.querySelectorAll(".ln > span").forEach(function(sp, i){
+      if (reduce) return;
+      sp.style.transform = "translateY(108%)";
+      sp.style.transition = "transform 1s cubic-bezier(.16,.9,.24,1) " + (i * 0.11) + "s";
+    });
+  }
+  function playLines(root){ root.querySelectorAll(".ln > span").forEach(function(sp){ sp.style.transform = "translateY(0)"; }); }
+  document.querySelectorAll("[data-lines]").forEach(function(h){
+    prepLines(h);
+    var o = new IntersectionObserver(function(en){ if (en[0].isIntersecting){ playLines(h); o.disconnect(); } }, { threshold: 0.3 });
+    o.observe(h);
+  });
+
+  /* the offer numbers count up when the band arrives */
+  var cio = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      cio.unobserve(e.target);
+      var b = e.target, raw = b.textContent, m = raw.match(/[\d.]+/);
+      if (!m || reduce) return;
+      var end = parseFloat(m[0]), dec = (m[0].split(".")[1] || "").length;
+      var pre = raw.slice(0, m.index), post = raw.slice(m.index + m[0].length);
+      var pad = /^0/.test(m[0]) ? m[0].split(".")[0].length : 0;
+      var t0 = performance.now();
+      (function tick(now){
+        var k = clamp((now - t0) / 900, 0, 1);
+        var v = end * (1 - Math.pow(1 - k, 3));
+        var s = dec ? v.toFixed(dec) : String(Math.round(v));
+        if (pad) s = s.padStart(pad, "0");
+        b.textContent = pre + s + post;
+        if (k < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
+  }, { threshold: 0.6 });
+  document.querySelectorAll(".stat__num").forEach(function(b){ cio.observe(b); });
+
+  var mio = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if (e.isIntersecting){ e.target.style.width = e.target.getAttribute("data-lvl") + "%"; mio.unobserve(e.target); } });
+  }, { threshold: 0.5 });
+  document.querySelectorAll(".meter__fill").forEach(function(f){ mio.observe(f); });
+
+  /* ---- opening sequence: the desk powers up, then the type ---- */
+  var heroTitle = document.getElementById("heroTitle");
+  var desk = document.getElementById("desk");           /* scroll owns this one */
+  var deskEnter = document.getElementById("deskEnter"); /* the intro owns this one */
+  /* The intro hides the hero, then reveals it. That reveal must never depend on
+     requestAnimationFrame: rAF does not fire in a background or non-compositing
+     tab, so a page opened in a new tab (or behind another window) would sit with
+     the console at opacity 0 and the title translated off — invisible until
+     focus. setTimeout still fires when backgrounded, and visibilitychange is the
+     backstop. If anything goes wrong, the resting state is visible. */
+  var introPlayed = false;
+  function playIntro(){
+    if (introPlayed) return;
+    introPlayed = true;
+    playLines(heroTitle);
+    deskEnter.style.transform = "";
+    deskEnter.style.opacity = "";
+  }
+
+  if (!reduce && document.visibilityState === "visible"){
+    prepLines(heroTitle);
+    deskEnter.style.transform = "translateY(52%)";
+    deskEnter.style.opacity = "0";
+    deskEnter.style.transition = "transform 1.5s cubic-bezier(.16,.9,.24,1) .15s, opacity 1s ease .15s";
+    setTimeout(playIntro, 150);
+  } else {
+    introPlayed = true;   /* nobody is watching — never hide it in the first place */
+  }
+  document.addEventListener("visibilitychange", function(){
+    if (document.visibilityState === "visible") playIntro();
+  });
+
+  /* =========================================================
+     SEND BUTTON — lamps chase, button physically depresses
+     ========================================================= */
+  var lamps = [].slice.call(document.querySelectorAll("#sendLamps i"));
+  var lampIdx = 0, lampClock = 0;
+
+  /* =========================================================
+     SMOOTH SCROLL
+     ========================================================= */
+  var target = scrollY, current = scrollY, smooth = false, lastWritten = -1;
+  if (!reduce && matchMedia("(pointer: fine)").matches){
+    smooth = true;
+    addEventListener("wheel", function(e){
+      if (e.ctrlKey) return;
+      e.preventDefault();
+      target += e.deltaY * (e.deltaMode === 1 ? 22 : 1);
+      target = clamp(target, 0, document.body.scrollHeight - innerHeight);
+    }, { passive: false });
+  }
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener("click", function(e){
+      var t = document.querySelector(a.getAttribute("href"));
+      if (!t) return;
+      e.preventDefault();
+      var y = t.getBoundingClientRect().top + scrollY - 70;
+      if (smooth) target = y; else scrollTo({ top: y, behavior: "smooth" });
+    });
+  });
+
+  /* =========================================================
+     CURSOR
+     ========================================================= */
+  var cur = document.getElementById("cursor"), cxp = 0, cyp = 0, mxp = 0, myp = 0;
+  if (!reduce && matchMedia("(pointer: fine)").matches){
+    addEventListener("mousemove", function(e){ mxp = e.clientX; myp = e.clientY; cur.classList.add("on"); });
+    document.addEventListener("mouseover", function(e){
+      cur.classList.toggle("grow", !!e.target.closest("a, button, .card__hang"));
+    });
+  }
+
+  /* =========================================================
+     MASTER LOOP
+     ========================================================= */
+  var progress = document.getElementById("navProgress");
+  var nav = document.getElementById("nav");
+  var tltFill = document.getElementById("tltFill");
+  var tlis = [].slice.call(document.querySelectorAll(".tli"));
+  var tlt = document.getElementById("tlt");
+  var glow = document.getElementById("heroGlow");
+  var heroInner = document.getElementById("heroInner");
+  var heroFill = document.getElementById("heroFill");
+  var hero = document.querySelector(".hero");
+  var cables = [].slice.call(document.querySelectorAll(".hero__cables path"));
+  var histEl = document.querySelector(".hist");
+  var histFill = document.getElementById("histFill");
+  var patches = null;
+  var vuClock = 0;
+
+  if (reduce) heroFill.style.setProperty("--p", "100%");
+
+  function frame(t){
+    if (smooth){
+      /* If the page moved and it was not us, something else is driving —
+         the scrollbar, a keypress, find-in-page, an anchor. Hand over
+         immediately rather than dragging the reader back. */
+      if (lastWritten >= 0 && Math.abs(scrollY - lastWritten) > 2){
+        current = target = scrollY;
+        lastWritten = -1;
+      }
+      if (Math.abs(target - current) > 0.5){
+        current += (target - current) * 0.1;
+        scrollTo(0, current);
+        lastWritten = scrollY;
+      } else {
+        current = target = scrollY;
+        lastWritten = -1;
+      }
+    } else {
+      current = target = scrollY;
+    }
+    var y = scrollY;
+
+    var max = document.body.scrollHeight - innerHeight;
+    progress.style.width = (max > 0 ? (y / max) * 100 : 0) + "%";
+    nav.style.background = y > 40 ? "color-mix(in srgb, var(--void) 90%, transparent)" : "color-mix(in srgb, var(--void) 70%, transparent)";
+
+    /* ---- hero: three beats across the pin ---- */
+    var heroH = hero.offsetHeight - innerHeight;
+    if (y < hero.offsetHeight){
+      var p = clamp(y / heroH, 0, 1);
+      if (!reduce){
+        /* beat one: the level rises and fills the second line */
+        heroFill.style.setProperty("--p", (clamp(p / 0.42, 0, 1) * 100).toFixed(1) + "%");
+        /* beat two: the desk sinks out of frame as the copy lifts away —
+           they separate, so the CTAs never approach the console */
+        desk.style.transform = "translateY(" + (p * 62) + "%)";
+        glow.style.transform = "translate(-50%,-50%) translateY(" + (y * 0.13) + "px) scale(" + (1 + p * 0.5) + ")";
+        glow.style.opacity = String(1 - p * 0.35);
+        /* beat three: the type releases the frame */
+        heroInner.style.transform = "translateY(" + (-p * 13) + "vh) scale(" + (1 - p * 0.06) + ")";
+        heroInner.style.opacity = String(clamp(1 - p * 1.5, 0, 1));
+        cables.forEach(function(pth, i){
+          pth.style.transform = "translateX(" + (Math.sin(t * 0.0004 + i) * 30 - y * (0.05 + i * 0.02)) + "px)";
+        });
+        if (!patches) patches = [].slice.call(baySvg.querySelectorAll(".patch"));
+        patches.forEach(function(pt, i){
+          pt.style.transform = "translateY(" + (Math.sin(t * 0.0013 + i * 1.4) * 2.2) + "px)";
+        });
+      }
+
+      /* meters only run while the desk is on screen */
+      if (t - vuClock > 74){
+        vuClock = t;
+        for (var i = 0; i < vus.length; i++) targets[i] = 0.12 + Math.random() * Math.random() * 0.95;
+        nTarget[0] = -42 + Math.random() * Math.random() * 78;
+        nTarget[1] = -42 + Math.random() * Math.random() * 78;
+      }
+      for (var j = 0; j < vus.length; j++){
+        levels[j] += (targets[j] - levels[j]) * 0.3;
+        vus[j].style.setProperty("--lvl", levels[j].toFixed(3));
+      }
+      for (var k = 0; k < needles.length; k++){
+        nAngle[k] += (nTarget[k] - nAngle[k]) * 0.14;   /* ballistics, not a snap */
+        needles[k].setAttribute("transform", "rotate(" + nAngle[k].toFixed(2) + " 100 88)");
+      }
+    }
+
+    /* ---- timeline scrub ---- */
+    if (tlis.length){
+      var r = tlt.getBoundingClientRect();
+      var pr = clamp((innerHeight * 0.6 - r.top) / r.height, 0, 1);
+      tltFill.style.height = (pr * 100) + "%";
+      tlis.forEach(function(it){ it.classList.toggle("is-on", it.getBoundingClientRect().top < innerHeight * 0.66); });
+    }
+
+    /* ---- archive rail fills as the cohorts scroll past ---- */
+    if (histEl){
+      var hr = histEl.getBoundingClientRect();
+      histFill.style.height = (clamp((innerHeight * 0.66 - hr.top) / hr.height, 0, 1) * 100) + "%";
+    }
+
+    /* ---- cable physics ---- */
+    var moving = false;
+    rigs.forEach(function(rig){
+      var any = false;
+      for (var i = 0; i < rig.hover.length; i++){
+        var d = rig.target[i] - rig.hover[i];
+        if (Math.abs(d) > 0.002){ rig.hover[i] += d * 0.16; any = true; }
+        else if (rig.hover[i] !== rig.target[i]) { rig.hover[i] = rig.target[i]; any = true; }
+      }
+      if (any){ drawRig(rig); moving = true; }
+    });
+
+    /* ---- send lamps chase ---- */
+    if (lamps.length && t - lampClock > 260){
+      lampClock = t;
+      lamps.forEach(function(l, i){ l.classList.toggle("lit", i === lampIdx); });
+      lampIdx = (lampIdx + 1) % lamps.length;
+    }
+
+    drawScope(t);
+    drawWave(t);
+    drawArchBg(t);
+
+    if (cur){
+      cxp += (mxp - cxp) * 0.22; cyp += (myp - cyp) * 0.22;
+      cur.style.transform = "translate(" + cxp.toFixed(1) + "px," + cyp.toFixed(1) + "px)";
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* the rig depends on final text layout, so square it up once fonts settle */
+  addEventListener("load", function(){ setTimeout(function(){ rigs.forEach(layoutRig); drawBay(); }, 60); });
+})();
+</script>

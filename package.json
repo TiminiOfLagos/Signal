@@ -1,0 +1,15 @@
+{
+  "name": "signal-sessions",
+  "version": "0.3.0",
+  "private": true,
+  "description": "SIGNAL — Sessions 03. Campaign site for a studio residency for artists, producers and engineers across West and East Africa.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "license": "UNLICENSED"
+}
