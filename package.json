@@ -3,10 +3,10 @@
   "version": "0.3.0",
   "private": true,
   "description": "SIGNAL — Sessions 03. Campaign site for a studio residency for artists, producers and engineers across West and East Africa.",
-  "main": "server.js",
+  "//": "No build step and no server in production — this is a static site. server.js is for local development only, which is why there is no 'main' or 'build' field for a host to auto-detect.",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "start": "node server.js"
   },
   "engines": {
     "node": ">=16"
