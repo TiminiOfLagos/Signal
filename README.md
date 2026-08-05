@@ -18,9 +18,25 @@ server; the site itself is a single self-contained HTML file.
 
 | Path | What it is |
 | --- | --- |
-| `signal-sessions.html` | The entire site — markup, styles and behaviour |
+| `index.html` | The entire site — markup, styles and behaviour |
 | `server.js` | Zero-dependency static server (port 5173, override with `PORT`) |
 | `.claude/launch.json` | Dev-server config for the Claude Code preview pane |
+
+## Deploying
+
+The site is plain static files with no build step, so **serve the repo root and
+point the host at `index.html`** — that is all any static host needs:
+
+| Host | Setting |
+| --- | --- |
+| GitHub Pages | Settings → Pages → deploy from `main`, folder `/ (root)` |
+| Netlify | Build command: *(blank)*, Publish directory: `.` |
+| Vercel | Framework preset: **Other**, Output directory: `.` |
+| Cloudflare Pages | Build command: *(blank)*, Build output directory: `/` |
+| Render / Railway | Static site, publish directory `.` — or a Node service running `npm start` |
+
+`server.js` is only needed for local development or a Node host. If you use one,
+it honours `PORT` and binds `0.0.0.0`, which is what those platforms require.
 
 ## How it is built
 

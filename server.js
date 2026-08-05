@@ -1,11 +1,17 @@
 // Minimal zero-dependency static server for the Signal site.
 // Run: node server.js   →  http://localhost:5173
+//
+// The site is plain static files, so any static host (GitHub Pages, Netlify,
+// Vercel, Cloudflare Pages, S3) can serve the repo root directly and does not
+// need this file at all. It exists for local development, and for hosts that
+// expect a Node process.
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
 const ROOT = __dirname;
 const PORT = process.env.PORT || 5173;
+const HOST = process.env.HOST || "0.0.0.0"; // hosts bind externally, not to localhost
 
 const TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -15,33 +21,58 @@ const TYPES = {
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
   ".webp": "image/webp",
+  ".ico": "image/x-icon",
   ".woff2": "font/woff2",
-  ".mp3": "audio/mpeg"
+  ".mp3": "audio/mpeg",
+  ".txt": "text/plain; charset=utf-8"
 };
 
+function send(res, status, body, type) {
+  res.writeHead(status, { "Content-Type": type || "text/plain; charset=utf-8", "Cache-Control": "no-store" });
+  res.end(body);
+}
+
 http.createServer((req, res) => {
-  let rel = decodeURIComponent(req.url.split("?")[0]);
-  if (rel === "/") rel = "/signal-sessions.html";
+  let rel;
+  try {
+    rel = decodeURIComponent(req.url.split("?")[0]);
+  } catch {
+    rel = req.url.split("?")[0];
+  }
+
+  // the old filename shipped in earlier builds — keep links working
+  if (rel === "/signal-sessions.html") {
+    res.writeHead(301, { Location: "/" });
+    res.end();
+    return;
+  }
+
+  if (rel === "/" || rel.endsWith("/")) rel += "index.html";
 
   // keep requests inside ROOT
   const file = path.join(ROOT, path.normalize(rel).replace(/^([/\\])+/, ""));
-  if (!file.startsWith(ROOT)) {
-    res.writeHead(403).end("Forbidden");
+  if (file !== ROOT && !file.startsWith(ROOT + path.sep)) {
+    send(res, 403, "Forbidden");
     return;
   }
 
   fs.readFile(file, (err, buf) => {
-    if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" }).end("Not found: " + rel);
+    if (!err) {
+      send(res, 200, buf, TYPES[path.extname(file).toLowerCase()] || "application/octet-stream");
       return;
     }
-    res.writeHead(200, {
-      "Content-Type": TYPES[path.extname(file).toLowerCase()] || "application/octet-stream",
-      "Cache-Control": "no-store"
+    // Anything we cannot resolve falls back to the page itself rather than a
+    // bare 404, so a stray path never leaves the visitor staring at plain text.
+    fs.readFile(path.join(ROOT, "index.html"), (e2, home) => {
+      if (e2) {
+        send(res, 404, "Not found: " + rel);
+        return;
+      }
+      send(res, 404, home, TYPES[".html"]);
     });
-    res.end(buf);
   });
-}).listen(PORT, () => {
-  console.log("Signal running at http://localhost:" + PORT);
+}).listen(PORT, HOST, () => {
+  console.log("Signal running on port " + PORT);
 });
