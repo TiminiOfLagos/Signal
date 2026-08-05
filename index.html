@@ -151,24 +151,38 @@ img, svg{ max-width:100%; display:block; }
 /* ============================================================
    HERO — pinned three-beat console scene
    ============================================================ */
-.hero{ position: relative; height: 230vh; background: var(--void); }
+/* Shorter pin now the console is gone — there is less to reveal, so holding
+   the reader for over two screens just reads as a stuck page. */
+.hero{ position: relative; height: 165vh; background: var(--void); }
 .hero__sticky{
   position: sticky; top:0; height: 100vh; overflow: hidden;
   display:flex; flex-direction:column;
   padding: 86px var(--pad) 0;
 }
-#scope{ position:absolute; inset:0; width:100%; height:100%; opacity:.85; }
+/* The trace is atmosphere, not content. It sits well back and it does not
+   cross the copy — see drawScope, which keeps it in the lower third. */
+#scope{ position:absolute; inset:0; width:100%; height:100%; opacity:.42; }
 .hero__glow{
-  position:absolute; left:50%; top:56%;
-  width: min(1600px, 160vw); aspect-ratio: 1/.6; transform: translate(-50%,-50%);
+  position:absolute; left:50%; top:62%;
+  width: min(1500px, 155vw); aspect-ratio: 1/.6; transform: translate(-50%,-50%);
   background: radial-gradient(ellipse at center,
-      color-mix(in srgb, var(--amber) 46%, transparent) 0%,
-      color-mix(in srgb, var(--amber) 12%, transparent) 40%, transparent 68%);
-  filter: blur(34px); pointer-events:none;
+      color-mix(in srgb, var(--amber) 34%, transparent) 0%,
+      color-mix(in srgb, var(--amber) 9%, transparent) 42%, transparent 70%);
+  filter: blur(38px); pointer-events:none;
 }
-.hero__cables{ position:absolute; inset:0; pointer-events:none; opacity:.55; }
-.hero__cables path{ fill:none; stroke: var(--amber); stroke-width:1.5; opacity:.4; }
-.hero__cables path.c2{ stroke: var(--tape); opacity:.15; }
+.hero__cables{ position:absolute; inset:0; pointer-events:none; opacity:.3; }
+.hero__cables path{ fill:none; stroke: var(--amber); stroke-width:1.5; opacity:.3; }
+.hero__cables path.c2{ stroke: var(--tape); opacity:.1; }
+/* A bed under the copy so the headline, badge and buttons always hold their
+   contrast no matter what the trace is doing behind them. */
+.hero__scrim{
+  position:absolute; inset:0; pointer-events:none; z-index:2;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--void) 78%, transparent) 0%,
+                            color-mix(in srgb, var(--void) 55%, transparent) 42%,
+                            transparent 76%),
+    radial-gradient(120% 70% at 22% 42%, color-mix(in srgb, var(--void) 72%, transparent) 0%, transparent 62%);
+}
 
 /* The copy block and the desk are FLOW SIBLINGS, not layers. That is what
    guarantees the CTAs can never land on the console — at any scroll position,
@@ -200,6 +214,15 @@ img, svg{ max-width:100%; display:block; }
 }
 
 .hero__foot{ display:flex; align-items:flex-end; gap: 26px; flex-wrap: wrap; }
+/* the hero pair carry the page's only job — give them presence over the
+   background rather than letting them sit flat on it */
+.hero__foot .btn{ padding: 16px 26px 16px 21px; font-size: 12.5px; }
+.hero__foot .btn:not(.btn--ghost){ box-shadow: 0 10px 34px -14px var(--amber); }
+.hero__foot .btn--ghost{
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tape) 42%, transparent);
+  background: color-mix(in srgb, var(--void) 45%, transparent);
+  backdrop-filter: blur(3px);
+}
 .hero__lede{
   font-size: clamp(17px, 1.6vw, 23px); line-height:1.4; max-width: 36ch; margin:0;
   color: color-mix(in srgb, var(--tape) 88%, transparent);
@@ -218,67 +241,6 @@ img, svg{ max-width:100%; display:block; }
   color: var(--amber-2);
 }
 .hero__badge b{ color: var(--tape); font-weight:700; }
-
-/* ---------- the desk ---------- */
-.desk{
-  position:relative; z-index:2; flex:none;
-  display:flex; justify-content:center;
-  pointer-events:none;
-  will-change: transform;
-}
-.desk__enter{ width:100%; max-width: var(--maxw); will-change: transform; }
-.desk__unit{
-  width:100%;
-  background: linear-gradient(180deg, #191510, #0A0806);
-  border: 1px solid color-mix(in srgb, var(--tape) 15%, transparent);
-  border-bottom:none;
-  border-radius: 10px 10px 0 0;
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tape) 14%, transparent),
-              0 -30px 90px -40px var(--amber);
-  padding: 14px 14px 0;
-  display:grid; gap:10px;
-}
-.desk__top{ display:flex; align-items:stretch; gap:12px; }
-
-/* analog VU meter */
-.vum{
-  flex:none; width: clamp(96px, 12vw, 150px);
-  background: linear-gradient(180deg, #F6EEDC, #D9CCB1);
-  border-radius: 4px; padding:5px;
-  box-shadow: inset 0 0 0 1px #0006, 0 2px 0 #0008;
-}
-.vum svg{ width:100%; height:auto; display:block; }
-.vum .needle{ transform-origin: 100px 88px; transition: none; }
-
-.rack{
-  flex:1; display:flex; align-items:stretch; gap:2px;
-  height: clamp(74px, 9.5vw, 120px);
-  padding: 8px 6px;
-  background: #0A0806; border-radius:4px;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tape) 9%, transparent);
-  overflow:hidden;
-}
-.rack__strip{ flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:4px; padding:0 3px; min-width:0; }
-.rack__knob{
-  width:12px; height:12px; border-radius:50%; margin:0 auto;
-  background: conic-gradient(from 180deg, #3E352B, #17130F 55%, #3E352B);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tape) 18%, transparent); position:relative;
-}
-.rack__knob::after{
-  content:""; position:absolute; left:50%; top:1px; width:1.5px; height:4.5px;
-  background: var(--amber-2); transform: translateX(-50%) rotate(var(--rot,0deg)); transform-origin: 50% 5px;
-}
-.rack__vuwrap{ flex:1; display:flex; align-items:flex-end; background:#050403; border-radius:1px; box-shadow: inset 0 0 0 1px #ffffff12; overflow:hidden; }
-.rack__vu{
-  width:100%; height:100%;
-  background: linear-gradient(180deg, var(--clip) 0 11%, var(--amber) 11% 33%, var(--vu) 33% 100%);
-  transform-origin: bottom; transform: scaleY(var(--lvl,.15));
-}
-.rack__lbl{ font-family: var(--font-mono); font-size:7px; letter-spacing:.08em; color:#ffffff40; text-align:center; }
-
-/* patch bay strip */
-.bay{ position:relative; height: clamp(46px, 5.4vw, 66px); background:#0A0806; border-radius:4px 4px 0 0; box-shadow: inset 0 0 0 1px #ffffff10; overflow:hidden; }
-.bay svg{ position:absolute; inset:0; width:100%; height:100%; }
 
 .hero__cue{
   position:absolute; left:var(--pad); bottom:16px; z-index:4;
@@ -758,8 +720,7 @@ img, svg{ max-width:100%; display:block; }
 }
 @media (max-width: 820px){
   .nav__links{ display:none; }
-  .hero{ height: 180vh; }
-  .vum:nth-of-type(2){ display:none; }
+  .hero{ height: 150vh; }
   /* timeline drops to a single left rail */
   .tlt__rail{ left:9px; }
   .tli{ grid-template-columns: 1fr; }
@@ -782,21 +743,10 @@ img, svg{ max-width:100%; display:block; }
   .hero__sticky{ padding-top: 74px; }
   .hero__cue{ display:none; }
 }
-/* Short windows: shrink the console rather than drop it. Losing the hero
-   visual entirely is a worse trade than a slimmer rack, and this buys ~55px
-   which is enough to keep the copy from being squashed onto it. */
 @media (max-height: 700px){
-  .rack{ height: clamp(52px, 7vw, 78px); }
-  .bay{ height: clamp(30px, 3.6vw, 42px); }
-  .vum{ width: clamp(74px, 9vw, 104px); }
-  .desk__unit{ padding: 10px 10px 0; gap: 7px; }
-  .hero__inner{ gap: clamp(10px, 1.5vw, 20px); padding-bottom: clamp(10px, 1.5vh, 22px); }
+  .hero__inner{ gap: clamp(10px, 1.5vw, 20px); }
   .hero__badge{ padding: 7px 13px 7px 11px; }
 }
-/* Below 600px the copy and the console cannot share the fold: measured CTA
-   clearance goes negative at ~590, and an overlapping CTA is worse than no
-   console. Headline wins. */
-@media (max-height: 600px){ .desk{ display:none; } .hero__inner{ padding-bottom:0; } }
 
 /* small-screen display scale — .ln clips rather than wraps, so this is sized,
    not left to overflow. Verified against measured glyph widths at 320–640px. */
@@ -850,6 +800,7 @@ img, svg{ max-width:100%; display:block; }
       <path class="c2" d="M-40 660 C 300 760, 560 540, 860 660 S 1260 800, 1520 690"/>
       <path class="c2" d="M-40 420 C 340 330, 640 520, 940 420 S 1300 300, 1520 400"/>
     </svg>
+    <div class="hero__scrim"></div>
 
     <div class="hero__inner" id="heroInner">
       <div class="hero__eyebrow mono">
@@ -872,19 +823,6 @@ img, svg{ max-width:100%; display:block; }
             <a class="btn btn--ghost" href="#lanes">See the lanes</a>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="desk" id="desk" aria-hidden="true">
-      <div class="desk__enter" id="deskEnter">
-      <div class="desk__unit">
-        <div class="desk__top">
-          <div class="vum" id="vumL"></div>
-          <div class="rack" id="rack"></div>
-          <div class="vum" id="vumR"></div>
-        </div>
-        <div class="bay"><svg id="baySvg" preserveAspectRatio="none"></svg></div>
-      </div>
       </div>
     </div>
 
@@ -1300,7 +1238,7 @@ img, svg{ max-width:100%; display:block; }
   var rlTimer;
   addEventListener("resize", function(){
     clearTimeout(rlTimer);
-    rlTimer = setTimeout(function(){ rigs.forEach(layoutRig); sizeScope(); sizeWave(); sizeArchBg(); drawBay(); }, 160);
+    rlTimer = setTimeout(function(){ rigs.forEach(layoutRig); sizeScope(); sizeWave(); sizeArchBg(); measureCopy(); }, 160);
   });
 
   /* =========================================================
@@ -1369,71 +1307,6 @@ img, svg{ max-width:100%; display:block; }
   document.getElementById("tick2").innerHTML = row;
 
   /* =========================================================
-     THE DESK — VU needles, channel strips, patch bay
-     ========================================================= */
-  function vuMeter(label){
-    return '<svg viewBox="0 0 200 108">' +
-      '<path d="M18 88 A 86 86 0 0 1 182 88" fill="none" stroke="#00000022" stroke-width="1"/>' +
-      '<path d="M112 26 A 86 86 0 0 1 178 74" fill="none" stroke="#D0250B" stroke-width="4" opacity=".85"/>' +
-      '<g stroke="#2A2118" stroke-width="1.6">' +
-        '<path d="M28 74 L34 70"/><path d="M45 55 L50 60"/><path d="M70 39 L73 45"/>' +
-        '<path d="M100 32 L100 39"/><path d="M130 39 L127 45"/><path d="M155 55 L150 60"/><path d="M172 74 L166 70"/>' +
-      '</g>' +
-      '<text x="100" y="66" text-anchor="middle" font-family="ui-monospace,monospace" font-size="13" fill="#2A2118" letter-spacing="2">'+label+'</text>' +
-      '<text x="100" y="82" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8" fill="#2A211899" letter-spacing="1.5">VU</text>' +
-      '<path class="needle" d="M100 88 L100 30" stroke="#1A1410" stroke-width="2" stroke-linecap="round"/>' +
-      '<circle cx="100" cy="88" r="5" fill="#1A1410"/>' +
-    '</svg>';
-  }
-  document.getElementById("vumL").innerHTML = vuMeter("L");
-  document.getElementById("vumR").innerHTML = vuMeter("R");
-  var needles = [].slice.call(document.querySelectorAll(".vum .needle"));
-  var nAngle = [0, 0], nTarget = [0, 0];
-
-  var rack = document.getElementById("rack");
-  var STRIPS = 16, frag = "";
-  for (var s = 0; s < STRIPS; s++){
-    frag += '<div class="rack__strip">' +
-      '<div class="rack__knob" style="--rot:'+Math.round(-140 + Math.random()*280)+'deg"></div>' +
-      '<div class="rack__vuwrap"><div class="rack__vu"></div></div>' +
-      '<div class="rack__lbl">'+String(s+1).padStart(2,"0")+'</div>' +
-    '</div>';
-  }
-  rack.innerHTML = frag;
-  var vus = [].slice.call(rack.querySelectorAll(".rack__vu")), levels = [], targets = [];
-  vus.forEach(function(){ levels.push(0.12); targets.push(0.3); });
-
-  /* patch bay: two rows of sockets with cables looped between them */
-  var baySvg = document.getElementById("baySvg");
-  function drawBay(){
-    var r = baySvg.parentElement.getBoundingClientRect();
-    if (!r.width) return;
-    baySvg.setAttribute("viewBox", "0 0 " + r.width + " " + r.height);
-    while (baySvg.firstChild) baySvg.removeChild(baySvg.firstChild);
-    var n = Math.max(12, Math.floor(r.width / 34)), step = r.width / n;
-    var yTop = r.height * 0.32, yBot = r.height * 0.74, pts = [];
-    for (var i = 0; i < n; i++){
-      var x = step * (i + 0.5);
-      pts.push({ x:x, yTop:yTop, yBot:yBot });
-      [yTop, yBot].forEach(function(y){
-        baySvg.appendChild(el("circle", { cx:x, cy:y, r:5, fill:"#000", stroke:"#ffffff26", "stroke-width":"1.5" }));
-        baySvg.appendChild(el("circle", { cx:x, cy:y, r:1.8, fill:"#ffffff1a" }));
-      });
-    }
-    /* a few patch cables, deterministic so they do not jump around */
-    var pairs = [[1,5],[3,9],[7,2],[Math.max(0,n-3), Math.max(0,n-8)]];
-    pairs.forEach(function(p, k){
-      var a = pts[p[0] % n], b = pts[p[1] % n];
-      if (!a || !b) return;
-      var path = el("path", { fill:"none", stroke: k % 2 ? "#FF6A00" : "#FFA23D", "stroke-width":"2.5", "stroke-linecap":"round", opacity:".85" });
-      path.setAttribute("d", "M " + a.x + " " + a.yTop + " Q " + ((a.x+b.x)/2) + " " + (r.height + 16) + " " + b.x + " " + b.yBot);
-      path.setAttribute("class", "patch");
-      baySvg.appendChild(path);
-    });
-  }
-  drawBay();
-
-  /* =========================================================
      HERO SCOPE — the room's signal, on a canvas
      ========================================================= */
   var scope = document.getElementById("scope"), sctx = scope.getContext("2d"), sw = 0, sh = 0;
@@ -1444,33 +1317,45 @@ img, svg{ max-width:100%; display:block; }
     sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   sizeScope();
+  /* One slow trace, sitting below the copy rather than behind it.
+     The bar spectrum that used to run along the floor is gone: a row of lines
+     jumping up and down behind a headline and two buttons made the copy read
+     as decoration instead of something to act on.
+     The baseline is measured off the real CTA row, not a fixed fraction of the
+     viewport — at 700px tall a fixed 0.76 still ran straight through the
+     badge and the buttons. */
+  var copyBottom = 0;
+  function measureCopy(){
+    var foot = document.querySelector(".hero__foot");
+    var sticky = document.querySelector(".hero__sticky");
+    if (!foot || !sticky) return;
+    copyBottom = foot.getBoundingClientRect().bottom - sticky.getBoundingClientRect().top;
+  }
+  measureCopy();
+
   function drawScope(t){
     if (!sw) return;
     sctx.clearRect(0, 0, sw, sh);
-    var mid = sh * 0.5;
-    /* the trace */
+    /* Fit the trace into whatever room is left under the copy. On a short
+       window there is none, and then it simply does not draw — better an
+       empty band than a line through the buttons. */
+    var room = sh - copyBottom - 12;
+    if (room < 42) return;
+    var amp0 = Math.min(sh * 0.06, (room - 12) / 2);
+    var mid = sh - 12 - amp0;
     for (var pass = 0; pass < 2; pass++){
       sctx.beginPath();
-      for (var x = 0; x <= sw; x += 3){
+      for (var x = 0; x <= sw; x += 4){
         var u = x / sw;
-        var amp = Math.sin(u * Math.PI) * sh * 0.17;
+        var amp = Math.sin(u * Math.PI) * amp0;
         var y = mid
-          + Math.sin(u * 15 + t * 0.0012) * amp
-          + Math.sin(u * 37 - t * 0.0019) * amp * 0.4
-          + Math.sin(u * 71 + t * 0.0031) * amp * 0.16;
+          + Math.sin(u * 9 + t * 0.00045) * amp          /* ~2.5x slower */
+          + Math.sin(u * 23 - t * 0.0007) * amp * 0.32;
         x === 0 ? sctx.moveTo(x, y) : sctx.lineTo(x, y);
       }
-      sctx.strokeStyle = pass === 0 ? "rgba(255,106,0,.16)" : "rgba(255,162,61,.5)";
-      sctx.lineWidth = pass === 0 ? 11 : 1.6;
+      sctx.strokeStyle = pass === 0 ? "rgba(255,106,0,.10)" : "rgba(255,162,61,.34)";
+      sctx.lineWidth = pass === 0 ? 9 : 1.3;
       sctx.stroke();
-    }
-    /* the floor spectrum */
-    var n = Math.floor(sw / 16);
-    for (var i = 0; i < n; i++){
-      var e = Math.sin((i / n) * Math.PI);
-      var h = (Math.sin(t * 0.002 + i * 0.55) * 0.5 + 0.5) * e * sh * 0.13 + 2;
-      sctx.fillStyle = "rgba(255,106,0," + (0.05 + e * 0.14) + ")";
-      sctx.fillRect(i * 16 + 4, sh - h, 8, h);
     }
   }
 
@@ -1745,28 +1630,21 @@ img, svg{ max-width:100%; display:block; }
 
   /* ---- opening sequence: the desk powers up, then the type ---- */
   var heroTitle = document.getElementById("heroTitle");
-  var desk = document.getElementById("desk");           /* scroll owns this one */
-  var deskEnter = document.getElementById("deskEnter"); /* the intro owns this one */
-  /* The intro hides the hero, then reveals it. That reveal must never depend on
-     requestAnimationFrame: rAF does not fire in a background or non-compositing
-     tab, so a page opened in a new tab (or behind another window) would sit with
-     the console at opacity 0 and the title translated off — invisible until
-     focus. setTimeout still fires when backgrounded, and visibilitychange is the
-     backstop. If anything goes wrong, the resting state is visible. */
+  /* The intro hides the headline, then reveals it. That reveal must never depend
+     on requestAnimationFrame: rAF does not fire in a background or
+     non-compositing tab, so a page opened in a new tab would sit with the title
+     translated off — invisible until focus. setTimeout still fires when
+     backgrounded, and visibilitychange is the backstop. If anything goes wrong,
+     the resting state is visible. */
   var introPlayed = false;
   function playIntro(){
     if (introPlayed) return;
     introPlayed = true;
     playLines(heroTitle);
-    deskEnter.style.transform = "";
-    deskEnter.style.opacity = "";
   }
 
   if (!reduce && document.visibilityState === "visible"){
     prepLines(heroTitle);
-    deskEnter.style.transform = "translateY(52%)";
-    deskEnter.style.opacity = "0";
-    deskEnter.style.transition = "transform 1.5s cubic-bezier(.16,.9,.24,1) .15s, opacity 1s ease .15s";
     setTimeout(playIntro, 150);
   } else {
     introPlayed = true;   /* nobody is watching — never hide it in the first place */
@@ -1830,8 +1708,6 @@ img, svg{ max-width:100%; display:block; }
   var cables = [].slice.call(document.querySelectorAll(".hero__cables path"));
   var histEl = document.querySelector(".hist");
   var histFill = document.getElementById("histFill");
-  var patches = null;
-  var vuClock = 0;
 
   if (reduce) heroFill.style.setProperty("--p", "100%");
 
@@ -1866,39 +1742,16 @@ img, svg{ max-width:100%; display:block; }
     if (y < hero.offsetHeight){
       var p = clamp(y / heroH, 0, 1);
       if (!reduce){
-        /* beat one: the level rises and fills the second line */
+        /* the level rises and fills the second line */
         heroFill.style.setProperty("--p", (clamp(p / 0.42, 0, 1) * 100).toFixed(1) + "%");
-        /* beat two: the desk sinks out of frame as the copy lifts away —
-           they separate, so the CTAs never approach the console */
-        desk.style.transform = "translateY(" + (p * 62) + "%)";
-        glow.style.transform = "translate(-50%,-50%) translateY(" + (y * 0.13) + "px) scale(" + (1 + p * 0.5) + ")";
-        glow.style.opacity = String(1 - p * 0.35);
-        /* beat three: the type releases the frame */
-        heroInner.style.transform = "translateY(" + (-p * 13) + "vh) scale(" + (1 - p * 0.06) + ")";
+        glow.style.transform = "translate(-50%,-50%) translateY(" + (y * 0.10) + "px) scale(" + (1 + p * 0.4) + ")";
+        glow.style.opacity = String(1 - p * 0.4);
+        /* the type releases the frame */
+        heroInner.style.transform = "translateY(" + (-p * 11) + "vh)";
         heroInner.style.opacity = String(clamp(1 - p * 1.5, 0, 1));
         cables.forEach(function(pth, i){
-          pth.style.transform = "translateX(" + (Math.sin(t * 0.0004 + i) * 30 - y * (0.05 + i * 0.02)) + "px)";
+          pth.style.transform = "translateX(" + (-y * (0.04 + i * 0.015)) + "px)";
         });
-        if (!patches) patches = [].slice.call(baySvg.querySelectorAll(".patch"));
-        patches.forEach(function(pt, i){
-          pt.style.transform = "translateY(" + (Math.sin(t * 0.0013 + i * 1.4) * 2.2) + "px)";
-        });
-      }
-
-      /* meters only run while the desk is on screen */
-      if (t - vuClock > 74){
-        vuClock = t;
-        for (var i = 0; i < vus.length; i++) targets[i] = 0.12 + Math.random() * Math.random() * 0.95;
-        nTarget[0] = -42 + Math.random() * Math.random() * 78;
-        nTarget[1] = -42 + Math.random() * Math.random() * 78;
-      }
-      for (var j = 0; j < vus.length; j++){
-        levels[j] += (targets[j] - levels[j]) * 0.3;
-        vus[j].style.setProperty("--lvl", levels[j].toFixed(3));
-      }
-      for (var k = 0; k < needles.length; k++){
-        nAngle[k] += (nTarget[k] - nAngle[k]) * 0.14;   /* ballistics, not a snap */
-        needles[k].setAttribute("transform", "rotate(" + nAngle[k].toFixed(2) + " 100 88)");
       }
     }
 
@@ -1948,7 +1801,7 @@ img, svg{ max-width:100%; display:block; }
   requestAnimationFrame(frame);
 
   /* the rig depends on final text layout, so square it up once fonts settle */
-  addEventListener("load", function(){ setTimeout(function(){ rigs.forEach(layoutRig); drawBay(); }, 60); });
+  addEventListener("load", function(){ setTimeout(function(){ rigs.forEach(layoutRig); measureCopy(); }, 60); });
 })();
 </script>
 
