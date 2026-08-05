@@ -75,4 +75,21 @@ http.createServer((req, res) => {
   });
 }).listen(PORT, HOST, () => {
   console.log("Signal running on port " + PORT);
+
+  // If a host bundles this file without the static assets beside it (some
+  // platforms trace only the entry point into a serverless function), every
+  // request 404s and the cause is invisible. Say so in the deploy log.
+  const home = path.join(ROOT, "index.html");
+  if (fs.existsSync(home)) {
+    console.log("Serving " + home);
+  } else {
+    console.error("FATAL: index.html is not next to server.js.");
+    console.error("  __dirname = " + ROOT);
+    console.error("  cwd       = " + process.cwd());
+    let listing = [];
+    try { listing = fs.readdirSync(ROOT); } catch (e) { listing = ["<unreadable: " + e.code + ">"]; }
+    console.error("  contents  = " + listing.join(", "));
+    console.error("This site is static — deploy it as a static site with publish");
+    console.error("directory '.' instead of running this server.");
+  }
 });
