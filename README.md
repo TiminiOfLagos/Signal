@@ -19,8 +19,31 @@ server; the site itself is a single self-contained HTML file.
 | Path | What it is |
 | --- | --- |
 | `index.html` | The entire site — markup, styles and behaviour |
+| `og-image.jpg` | 1200×630 link-preview card |
+| `favicon.svg` · `favicon-32.png` · `favicon-192.png` · `apple-touch-icon.png` | Icons |
 | `server.js` | Zero-dependency static server (port 5173, override with `PORT`) |
 | `.claude/launch.json` | Dev-server config for the Claude Code preview pane |
+
+## Link previews
+
+`index.html` carries Open Graph and Twitter card tags, and `og-image.jpg` is the
+card that shows when the URL is pasted into WhatsApp, Slack, X or LinkedIn.
+
+**One thing to finish:** `og:image` and `twitter:image` currently use the
+relative path `/og-image.jpg`. Facebook's scraper (which WhatsApp and Instagram
+also use) resolves that against the page URL, but X and a few others want an
+absolute one. Once the production domain is settled, change both to the full
+URL and add a matching `og:url`:
+
+```html
+<meta property="og:url"   content="https://YOUR-DOMAIN/">
+<meta property="og:image" content="https://YOUR-DOMAIN/og-image.jpg">
+<meta name="twitter:image" content="https://YOUR-DOMAIN/og-image.jpg">
+```
+
+Scrapers cache aggressively. After changing it, re-scrape via
+[Facebook's debugger](https://developers.facebook.com/tools/debug/) and
+[X's validator](https://cards-dev.twitter.com/validator) rather than waiting.
 
 ## Deploying
 
